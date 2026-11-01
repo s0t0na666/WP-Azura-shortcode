@@ -1,0 +1,14 @@
+.azns{--bg:#101713;--panel:#17231c;--fg:#e8f2eb;--muted:#a7b8ad;--accent:#39ff8a;box-sizing:border-box;background:var(--bg);color:var(--fg);border:1px solid #39ff8a33;border-radius:12px;padding:16px;margin:1em 0;max-width:100%}
+.azns *{box-sizing:border-box}
+.azns-light{--bg:#f7faf8;--panel:#fff;--fg:#17231c;--muted:#59675e;--accent:#168c4c}
+.azns-player-embed,.azns-history-embed,.azns-podcasts-embed,.azns-schedule-embed{display:block;padding:0!important;border:0!important;background:transparent!important;overflow:hidden;border-radius:0!important;max-width:100%}
+.azns-player-embed iframe,.azns-history-embed iframe,.azns-podcasts-embed iframe,.azns-schedule-embed iframe{display:block;width:100%;max-width:100%;vertical-align:middle}
+.azns-track-meta{display:flex;flex-direction:column;gap:4px;min-width:0}
+.azns-art{width:72px;height:72px;object-fit:cover;border-radius:8px}
+.azns-status,.azns-live,.azns-listeners{display:block;color:var(--muted);font-size:.9em;margin-top:10px}
+.azns-history{padding-left:1.5em}
+.azns-history li{padding:6px 0}
+.azns-item{background:var(--panel);padding:12px;border-radius:8px;margin:8px 0}
+.azns-item p,.azns-episode p{color:var(--muted)}
+.azns-episode-list{padding-left:1.5em}
+.azns-episode{padding:8px 0}
