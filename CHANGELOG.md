@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.3.3 — Audit fixes
+
+- Removed the built-in station seed; station entries are read exclusively from `azns_settings`.
+- Hardened station URL parsing, malformed settings handling, and duplicate shortcode handling.
+- Hardened administrator settings saves against malformed arrays and invalid station rows.
+- Improved log-directory protection files for Apache 2.4+, legacy Apache, and IIS; documented the Nginx rule.
+- Redacted credentials and secret-like values recursively in log context.
+- Fixed Now Playing loading status remaining visible after a successful response.
+- Improved artwork URL validation and WebSocket handling for installations served from a URL subdirectory.
+- Reinitialized live widgets after browser back/forward-cache restoration.
+- Disabled automatic HTTP redirect following for public proxy requests.
+
+## 1.3.2
+
+- Removed the “WebSocket connected” and “Now Playing data updated” status messages.
+
 ## 1.3.1 — WIP baseline
 
 - Initial repository baseline imported from the AzuraCast Suite 1.3.1 package.
@@ -7,4 +23,4 @@
 - WordPress-rendered Now Playing and Playing Next components are included.
 - Playing Next is intended to display only the queued track.
 
-> This is a work-in-progress snapshot. The changelog records package intent, not proof of live integration testing.
+> A changelog entry records code intent; it does not replace live integration testing.
