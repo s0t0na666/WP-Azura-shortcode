@@ -79,9 +79,11 @@
                     if (episode.description_short || episode.description) {
                         entry.append(make('p', '', episode.description_short || episode.description));
                     }
-                    const publishedAt = Number(episode.publish_at);
+                    const rawPublishedAt = episode.publish_at;
+                    const publishedAt = Number(rawPublishedAt);
                     const publishedDate = new Date(publishedAt * 1000);
-                    if (Number.isFinite(publishedAt) && Number.isFinite(publishedDate.getTime())) {
+                    if (rawPublishedAt !== null && rawPublishedAt !== undefined && rawPublishedAt !== ''
+                        && Number.isFinite(publishedAt) && publishedAt > 0 && Number.isFinite(publishedDate.getTime())) {
                         const time = make('time', '');
                         time.dateTime = publishedDate.toISOString();
                         time.textContent = publishedDate.toLocaleDateString();

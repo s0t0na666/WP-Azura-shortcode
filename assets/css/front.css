@@ -12,3 +12,5 @@
 .azns-item p,.azns-episode p{color:var(--muted)}
 .azns-episode-list{padding-left:1.5em}
 .azns-episode{padding:8px 0}
+
+.azns-status[hidden]{display:none!important}
