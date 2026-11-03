@@ -2,14 +2,14 @@
 /**
  * Plugin Name: AzuraCast Suite
  * Description: Embeds the official AzuraCast player and adds WordPress components for now playing, Playing Next, history, podcasts and schedule.
- * Version: 1.3.3
+ * Version: 1.3.4
  * Requires at least: 6.2
  * Requires PHP: 8.1
  * License: GPL-2.0-or-later
  */
 if (!defined('ABSPATH')) { exit; }
 
-define('AZNS_VER', '1.3.3');
+define('AZNS_VER', '1.3.4');
 define('AZNS_DIR', plugin_dir_path(__FILE__));
 define('AZNS_URL', plugin_dir_url(__FILE__));
 

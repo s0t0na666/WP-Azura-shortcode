@@ -4,7 +4,7 @@ Tags: azuracast, radio, player, streaming, shortcode
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 1.3.3
+Stable tag: 1.3.4
 License: GPL-2.0-or-later
 
 Embeds AzuraCast public pages and provides WordPress components for now playing, Playing Next, playback history, podcasts and schedule.
@@ -58,6 +58,10 @@ location ^~ /wp-content/uploads/azuracast-logs/ {
 ```
 
 == Changelog ==
+
+= 1.3.4 =
+* Prevented a delayed Now Playing REST snapshot from overwriting a newer WebSocket update.
+* Added automated frontend regression tests and PHP syntax-check CI for the development branch.
 
 = 1.3.3 =
 * Hardened settings validation, logging and public API proxy behavior.

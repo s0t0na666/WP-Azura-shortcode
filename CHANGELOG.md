@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.4 — Playing Next reliability and automated checks
+
+- Prevented a delayed Now Playing REST snapshot from overwriting a newer WebSocket publication.
+- Prevented an older failed snapshot from replacing the live-feed state with an error message.
+- Added Node.js regression tests for the Playing Next JSON/WebSocket flow.
+- Added GitHub Actions PHP syntax checks for PHP 8.1 and 8.5, plus frontend syntax and behavior tests.
+
 ## 1.3.3 — Audit fixes
 
 - Removed the built-in station seed; station entries are read exclusively from `azns_settings`.

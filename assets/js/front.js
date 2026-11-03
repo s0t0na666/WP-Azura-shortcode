@@ -146,6 +146,8 @@
         let socket = null;
         let retryTimer = null;
         let retryDelay = 1000;
+        // Prevent a slow REST snapshot from overwriting a newer WebSocket publication.
+        let realtimeRevision = 0;
 
         const setStatus = message => {
             if (!status) return;
@@ -177,16 +179,25 @@
         };
 
         const load = async resource => {
+            const revisionAtRequest = (resource === 'nowplaying') ? realtimeRevision : 0;
             try {
                 const response = await fetch(config.rest + resource, { credentials: 'same-origin' });
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.json();
                 if (!active) return;
-                if (resource === 'nowplaying') applyNowPlaying(data);
-                else if (resource === 'podcasts') renderPodcastList(widget, data, config);
-                else if (resource === 'schedule') renderSchedule(widget, data);
+                if (resource === 'nowplaying') {
+                    // Keep the real-time publication when it arrived after this request began.
+                    if (realtimeRevision === revisionAtRequest) applyNowPlaying(data);
+                } else if (resource === 'podcasts') {
+                    renderPodcastList(widget, data, config);
+                } else if (resource === 'schedule') {
+                    renderSchedule(widget, data);
+                }
             } catch (error) {
-                setStatus(`Unable to load ${resource}`);
+                // A failed, older snapshot must not replace the state supplied by the live feed.
+                if (resource !== 'nowplaying' || realtimeRevision === revisionAtRequest) {
+                    setStatus(`Unable to load ${resource}`);
+                }
             }
         };
 
@@ -200,7 +211,10 @@
             // AzuraCast publishes the full Now Playing JSON object inside pub.data.np.
             // The next item is therefore available at pub.data.np.playing_next.
             const data = payload?.data?.np;
-            if (data && typeof data === 'object') applyNowPlaying(data);
+            if (data && typeof data === 'object') {
+                realtimeRevision += 1;
+                applyNowPlaying(data);
+            }
         };
         const retry = () => {
             if (!active) return;
