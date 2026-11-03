@@ -46,11 +46,12 @@ Source references:
 ## Automated checks
 - [x] Add frontend regression tests for JSON initial state, WebSocket updates, empty queues, and stale REST-response ordering.
 - [x] Add GitHub Actions workflow for PHP syntax checks on PHP 8.1/8.5 and JavaScript syntax/behavior checks.
-- [ ] Confirm the workflow completes successfully on GitHub for the development commit.
+- [x] Confirm the workflow completes successfully on GitHub for the development commit (run 41670958961: PHP 8.1, PHP 8.5, Node.js syntax and all frontend regression tests passed).
 
 ## Still requires WordPress/AzuraCast runtime testing
-- [ ] Run PHP syntax checks on PHP 8.1 and PHP 8.5 (CI workflow).
-- [ ] Run JavaScript syntax checks in supported browsers (CI covers Node syntax, not full browser compatibility).
+- [x] Run PHP syntax checks on PHP 8.1 and PHP 8.5 (GitHub Actions passed).
+- [x] Run JavaScript syntax check and frontend regression tests in Node.js (GitHub Actions passed).
+- [ ] Verify JavaScript behavior in supported desktop and mobile browsers.
 - [ ] Test shortcodes and settings saves in a clean WordPress installation.
 - [ ] Verify public-page iframe URLs, theme selection, responsiveness and actual sizing on desktop/mobile.
 - [ ] Test against the target AzuraCast 0.24.0 instance, including a reverse-proxy subdirectory.
