@@ -22,6 +22,20 @@
 - [ ] Preserve existing WordPress shortcode names and dynamic station selection where practical, so existing pages can continue to use their current shortcode interface.
 - [ ] Verify responsive sizing, theme selection, and embed behavior for each AzuraCast component on desktop and mobile.
 
+## AzuraCast 0.24.0 public UI inventory (source reviewed)
+- [x] Confirm the official Player embed is available at the station public page's `/embed` route and is rendered by AzuraCast's `Public/Player` Vue component.
+- [x] Confirm the AzuraCast Player component renders the current track, album artwork, live-DJ state, audio controls, stream selection, and supported player controls itself.
+- [x] Confirm AzuraCast provides public History, Podcasts, and Schedule pages; Podcasts and Schedule support embedded mode, while History is already rendered using a minimal public page.
+- [x] Inspect AzuraCast 0.24.0 `Public/Player.vue`: it does not render the queued `playing_next` item.
+- [x] Inspect AzuraCast 0.24.0 public routes: no separate public `next-track` page/embed route was found.
+- [ ] Decide how Playing Next should be handled without a WordPress-rendered UI. Investigate a supported AzuraCast-native extension/custom public page or agree to omit the standalone Playing Next widget if AzuraCast does not expose it.
+
+Source references:
+- [AzuraCast 0.24.0 PlayerAction](https://github.com/AzuraCast/AzuraCast/blob/0.24.0/backend/src/Controller/Frontend/PublicPages/PlayerAction.php)
+- [AzuraCast 0.24.0 Player.vue](https://github.com/AzuraCast/AzuraCast/blob/0.24.0/frontend/components/Public/Player.vue)
+- [AzuraCast 0.24.0 public routes](https://github.com/AzuraCast/AzuraCast/blob/0.24.0/backend/config/routes/public.php)
+- [AzuraCast 0.24.0 public API routes](https://github.com/AzuraCast/AzuraCast/blob/0.24.0/backend/config/routes/api_station.php)
+
 ## Still requires runtime testing
 - [ ] Run PHP syntax checks on PHP 8.1 and PHP 8.5.
 - [ ] Run JavaScript syntax checks in supported browsers.
