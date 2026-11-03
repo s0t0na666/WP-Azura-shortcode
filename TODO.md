@@ -13,6 +13,15 @@
 - [x] Review log credential redaction and add Apache 2.4+, legacy Apache and IIS protection files.
 - [x] Document the Nginx log-directory deny rule.
 
+## Architecture requirement: AzuraCast-rendered UI
+- [ ] Make AzuraCast the renderer/source of truth for the player and all radio-facing UI elements. WordPress must not generate its own default/native player, Now Playing, Playing Next, artwork, listeners, history, podcast, or schedule UI.
+- [ ] Keep WordPress responsible for station configuration, shortcode handling, and a lightweight responsive embed/container wrapper only. Render the actual radio interface from AzuraCast public pages/official embed views.
+- [ ] Inventory the official AzuraCast 0.24.0 public pages and embed options for every component (player, current track, Playing Next/queue, artwork, listener count, history, podcasts, schedule). Use the supported AzuraCast page/embed wherever available.
+- [ ] Specifically verify how Playing Next can be displayed using an AzuraCast-owned page/component. Do not silently retain a WordPress-rendered fallback; document any AzuraCast limitation and the supported alternative before implementation.
+- [ ] Once equivalent AzuraCast-rendered output is confirmed, remove the redundant WordPress frontend rendering, custom metadata WebSocket UI, and REST proxy paths that are no longer needed.
+- [ ] Preserve existing WordPress shortcode names and dynamic station selection where practical, so existing pages can continue to use their current shortcode interface.
+- [ ] Verify responsive sizing, theme selection, and embed behavior for each AzuraCast component on desktop and mobile.
+
 ## Still requires runtime testing
 - [ ] Run PHP syntax checks on PHP 8.1 and PHP 8.5.
 - [ ] Run JavaScript syntax checks in supported browsers.
