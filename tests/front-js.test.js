@@ -121,7 +121,7 @@ test('renders Playing Next from the initial Now Playing JSON snapshot', async ()
     const harness = createHarness(async () => response(nextData('From JSON')));
     await flushPromises();
 
-    assert.match(harness.target.textContent, /Test Artist — From JSON/);
+    assert.match(harness.target.textContent, /Test Artist - From JSON/);
     assert.equal(harness.sockets.length, 1);
     assert.equal(
         harness.sockets[0].url,
@@ -144,7 +144,7 @@ test('updates Playing Next from an AzuraCast WebSocket publication', () => {
         data: JSON.stringify({ pub: { data: { np: nextData('From WebSocket') } } }),
     });
 
-    assert.match(harness.target.textContent, /Test Artist — From WebSocket/);
+    assert.match(harness.target.textContent, /Test Artist - From WebSocket/);
 });
 
 test('shows an explicit empty-queue state when playing_next is null', async () => {
