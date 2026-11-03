@@ -39,6 +39,22 @@
         target.append(meta);
     }
 
+    function renderNextTrack(target, nowPlaying, showArt) {
+        target.replaceChildren();
+        if (!Object.prototype.hasOwnProperty.call(nowPlaying, 'playing_next')) {
+            target.append(make('span', '', 'Next track information is not available from AzuraCast.'));
+            return;
+        }
+
+        const next = nowPlaying.playing_next;
+        if (!next || !next.song) {
+            target.append(make('span', '', 'No upcoming track is currently queued.'));
+            return;
+        }
+
+        renderTrack(target, next, showArt);
+    }
+
     function renderPodcastList(widget, podcasts, config) {
         const target = widget.querySelector('.azns-podcasts');
         target.replaceChildren();
@@ -147,7 +163,7 @@
                 });
                 if (!list.children.length) list.append(make('li', '', 'No recent tracks'));
             } else if (type === 'next') {
-                renderTrack(widget.querySelector('.azns-next'), data.playing_next, config.art);
+                renderNextTrack(widget.querySelector('.azns-next'), data, config.art);
             } else {
                 const target = widget.querySelector('.azns-current');
                 renderTrack(target, data.now_playing, config.art);
@@ -181,14 +197,17 @@
 
         load('nowplaying');
         const handlePayload = payload => {
-            const data = payload?.data;
-            if (data?.np) applyNowPlaying(data.np);
+            // AzuraCast publishes the full Now Playing JSON object inside pub.data.np.
+            // The next item is therefore available at pub.data.np.playing_next.
+            const data = payload?.data?.np;
+            if (data && typeof data === 'object') applyNowPlaying(data);
         };
         const retry = () => {
             if (!active) return;
             setStatus('Connection lost; reconnecting…');
             clearTimeout(retryTimer);
             retryTimer = setTimeout(() => {
+                // Refresh the JSON snapshot as well as reconnecting the real-time feed.
                 load('nowplaying');
                 connect();
             }, retryDelay);

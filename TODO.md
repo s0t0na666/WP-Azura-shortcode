@@ -13,12 +13,10 @@
 - [x] Review log credential redaction and add Apache 2.4+, legacy Apache and IIS protection files.
 - [x] Document the Nginx log-directory deny rule.
 
-## Architecture requirement: AzuraCast-rendered UI
-- [ ] Make AzuraCast the renderer/source of truth for the player and all radio-facing UI elements. WordPress must not generate its own default/native player, Now Playing, Playing Next, artwork, listeners, history, podcast, or schedule UI.
-- [ ] Keep WordPress responsible for station configuration, shortcode handling, and a lightweight responsive embed/container wrapper only. Render the actual radio interface from AzuraCast public pages/official embed views.
-- [ ] Inventory the official AzuraCast 0.24.0 public pages and embed options for every component (player, current track, Playing Next/queue, artwork, listener count, history, podcasts, schedule). Use the supported AzuraCast page/embed wherever available.
-- [ ] Specifically verify how Playing Next can be displayed using an AzuraCast-owned page/component. Do not silently retain a WordPress-rendered fallback; document any AzuraCast limitation and the supported alternative before implementation.
-- [ ] Once equivalent AzuraCast-rendered output is confirmed, remove the redundant WordPress frontend rendering, custom metadata WebSocket UI, and REST proxy paths that are no longer needed.
+## Architecture requirement: AzuraCast as the source of truth
+- [ ] Use AzuraCast public pages/official embeds for complete radio interfaces wherever AzuraCast provides them. WordPress must not recreate the full radio player or duplicate controls.
+- [ ] Keep WordPress responsible for station configuration, shortcode handling, and lightweight responsive embed/component wrappers.
+- [ ] For standalone data items that have no AzuraCast public embed, consume AzuraCast's own public API/WebSocket data; do not synthesize metadata or infer tracks from playback history.
 - [ ] Preserve existing WordPress shortcode names and dynamic station selection where practical, so existing pages can continue to use their current shortcode interface.
 - [ ] Verify responsive sizing, theme selection, and embed behavior for each AzuraCast component on desktop and mobile.
 
@@ -28,13 +26,20 @@
 - [x] Confirm AzuraCast provides public History, Podcasts, and Schedule pages; Podcasts and Schedule support embedded mode, while History is already rendered using a minimal public page.
 - [x] Inspect AzuraCast 0.24.0 `Public/Player.vue`: it does not render the queued `playing_next` item.
 - [x] Inspect AzuraCast 0.24.0 public routes: no separate public `next-track` page/embed route was found.
-- [ ] Decide how Playing Next should be handled without a WordPress-rendered UI. Investigate a supported AzuraCast-native extension/custom public page or agree to omit the standalone Playing Next widget if AzuraCast does not expose it.
+- [x] Confirm the public Now Playing JSON response includes the top-level `playing_next` object (or `null` when no next item is available).
+- [x] Confirm the documented WebSocket publication exposes the same Now Playing object at `pub.data.np`; therefore the next item is available at `pub.data.np.playing_next`.
+- [x] Keep the existing `[azura_next_track]` shortcode data-driven: initial snapshot from `/api/nowplaying/{station_shortcode}` through the WordPress REST proxy, then real-time updates from the AzuraCast WebSocket.
+- [x] Retain JSON refresh when reconnecting the WebSocket, so the widget recovers its current state after a dropped connection.
+- [x] Show a distinct empty state when AzuraCast explicitly returns `playing_next: null`, rather than treating it as a malformed/missing response.
+- [ ] Live-test the actual 0.24.0 response and WebSocket publications on the target AzuraCast instance, including a queued track, an empty queue/live DJ, and reconnect behavior.
 
 Source references:
 - [AzuraCast 0.24.0 PlayerAction](https://github.com/AzuraCast/AzuraCast/blob/0.24.0/backend/src/Controller/Frontend/PublicPages/PlayerAction.php)
 - [AzuraCast 0.24.0 Player.vue](https://github.com/AzuraCast/AzuraCast/blob/0.24.0/frontend/components/Public/Player.vue)
 - [AzuraCast 0.24.0 public routes](https://github.com/AzuraCast/AzuraCast/blob/0.24.0/backend/config/routes/public.php)
 - [AzuraCast 0.24.0 public API routes](https://github.com/AzuraCast/AzuraCast/blob/0.24.0/backend/config/routes/api_station.php)
+- [AzuraCast Now Playing Data API and WebSocket format](https://www.azuracast.com/docs/developers/now-playing-data/)
+- [AzuraCast public API example showing playing_next.song](https://github.com/AzuraCast/AzuraCast/discussions/3576)
 
 ## Still requires runtime testing
 - [ ] Run PHP syntax checks on PHP 8.1 and PHP 8.5.
