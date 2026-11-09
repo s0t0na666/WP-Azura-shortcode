@@ -284,6 +284,9 @@ test('refreshes the Now Playing snapshot and reconnects after the WebSocket clos
     assert.equal(fetchCount, 2, 'The REST snapshot should refresh during reconnection.');
     assert.equal(harness.sockets.length, 2, 'A new WebSocket connection should be created.');
     assert.match(harness.target.textContent, /Snapshot 2/);
+
+    harness.sockets[1].onopen();
+    assert.equal(harness.status.hidden, true, 'A recovered WebSocket should clear the stale reconnect warning.');
 });
 
 test('shows an unavailable status when the AzuraCast API cannot be reached', async () => {
