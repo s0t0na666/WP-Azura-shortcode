@@ -9,7 +9,7 @@ final class AZNS_Stations {
         if (!preg_match('~^[a-z][a-z0-9+.-]*://~i', $value)) $value = 'https://' . $value;
         $parts = wp_parse_url($value);
         if (!is_array($parts) || empty($parts['host']) || empty($parts['scheme'])
-            || preg_match('/^\\d+$/', (string) ($parts['host'] ?? ''))
+            || preg_match('/^\d+$/', (string) ($parts['host'] ?? ''))
             || !in_array(strtolower($parts['scheme']), ['http', 'https'], true)
             || isset($parts['user']) || isset($parts['pass']) || isset($parts['query'])
             || isset($parts['fragment']) || preg_match('/\s/', (string) $parts['host'])) return '';
