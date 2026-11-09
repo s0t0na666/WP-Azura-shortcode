@@ -16,7 +16,7 @@ function shortcode_atts($pairs, $atts, $shortcode = '') {
     return array_merge($pairs, is_array($atts) ? $atts : []);
 }
 function current_user_can($capability) {
-    return $capability === 'manage_options';
+    return false;
 }
 function wp_generate_password($length = 12, $special_chars = true, $extra_special_chars = false) {
     return 'abcd';
