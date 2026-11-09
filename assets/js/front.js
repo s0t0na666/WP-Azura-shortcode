@@ -25,14 +25,23 @@
             return;
         }
         const artUrl = (typeof song.art === 'string') ? song.art.trim() : '';
-        if (showArt && /^https?:\/\//i.test(artUrl)) {
-            const image = make('img', 'azns-art');
-            image.src = artUrl;
-            image.alt = 'Album artwork';
-            image.loading = 'lazy';
-            image.referrerPolicy = 'no-referrer';
-            image.onerror = () => image.remove();
-            target.append(image);
+        if (showArt) {
+            const fallback = make('span', 'azns-art-placeholder', 'No artwork');
+            fallback.setAttribute('role', 'img');
+            fallback.setAttribute('aria-label', 'Album artwork unavailable');
+            target.append(fallback);
+
+            if (/^https?:\/\//i.test(artUrl)) {
+                const image = make('img', 'azns-art');
+                image.alt = 'Album artwork';
+                image.loading = 'lazy';
+                image.decoding = 'async';
+                image.referrerPolicy = 'no-referrer';
+                image.onload = () => fallback.remove();
+                image.onerror = () => image.remove();
+                image.src = artUrl;
+                target.append(image);
+            }
         }
         const meta = make('div', 'azns-track-meta');
         meta.append(make('strong', 'azns-title', trackLabel(song)));
