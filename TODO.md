@@ -1,50 +1,92 @@
-# Release checklist — WP Azura Shortcode 1.3.4
+# WP Azura Shortcode — project checklist
 
-## Source review and architecture
-- [x] Remove built-in station fallback; read configured stations from the `azns_settings` option.
-- [x] Validate station URLs, malformed settings, duplicate station shortcodes and default selection.
-- [x] Harden administrator settings saves against malformed arrays and invalid station rows.
-- [x] Verify public API paths and response fields against the AzuraCast 0.24.0 OpenAPI schema.
-- [x] Verify public podcast listing/episode routes and public schedule route.
-- [x] Harden REST proxy behavior and do not follow upstream redirects.
-- [x] Review log credential redaction and add Apache 2.4+, legacy Apache and IIS protection files.
-- [x] Document the Nginx log-directory deny rule.
-- [x] Review WebSocket subscription, initial publication, reconnect handling, pagehide/pageshow and stale REST response ordering.
+## Stable release 1.3.4 — completed
 
-## AzuraCast-rendered UI and data flow
-- [x] Use AzuraCast public pages/official embeds for the complete Player, History, Podcasts and Schedule interfaces.
-- [x] Keep WordPress responsible for station configuration, shortcode handling and lightweight wrappers.
-- [x] Consume AzuraCast public JSON/WebSocket data for standalone Now Playing and Playing Next information.
-- [x] Preserve existing shortcode names and dynamic station selection.
-- [x] Confirm that AzuraCast 0.24.0 Player.vue does not include a separate Playing Next display.
-- [x] Confirm `playing_next` is available from `/api/nowplaying/{station_shortcode}` and in WebSocket `pub.data.np.playing_next`.
-- [x] Add explicit empty-queue handling and prevent an older REST snapshot from overwriting newer WebSocket data.
+- [x] Complete source audit and harden station configuration, REST proxy handling and diagnostic logging.
+- [x] Keep configured stations dynamic through the `azns_settings` option; no hardcoded station URL or shortcode.
+- [x] Use AzuraCast's official public pages for Player, History, Podcasts and Schedule.
+- [x] Use AzuraCast JSON and WebSocket data for Now Playing and Playing Next.
+- [x] Handle empty Playing Next queue, WebSocket reconnects and stale REST responses.
+- [x] Preserve existing shortcode names and multi-station selection.
+- [x] Confirm the public API routes and response fields against the AzuraCast 0.24.0 source/schema.
+- [x] Add PHP syntax checks for PHP 8.1 and 8.5, plus JavaScript syntax and regression tests.
+- [x] Build a clean WordPress-installable ZIP and verify its contents.
+- [x] Publish Git tag `v1.3.4` and GitHub Release with `azuracast-native-suite-1.3.4.zip` attached.
+- [x] Merge the release into `main` through [PR #2](https://github.com/s0t0na666/WP-Azura-shortcode/pull/2), preserving both branch histories.
+- [x] User-confirmed end-to-end testing: all plugin elements work; installation and settings saving work; responsive desktop/tablet/mobile layouts and Light/Dark themes work; the configured AzuraCast connection and live data work.
 
-## User-confirmed integration checks — 2026-11-09
-The user reports that all elements work correctly, responsive layouts and both themes work, and the plugin is installed and saving settings on WordPress. The user then explicitly asked to proceed on the assumption that all remaining tests passed. Accordingly, the following are recorded as user-assumed successful rather than independently observed by the maintainer. The plugin log file had been manually deleted before this confirmation; its absence alone is not proof of an HTTP access-denied response.
+### 1.3.4 validation notes
 
-- [x] Test all plugin elements: Player, Now Playing, Playing Next, History, Podcasts and Schedule.
-- [x] Test initial WordPress installation, station setup and settings saving.
-- [x] Test first-install/invalid-row/duplicate/empty-configuration behavior (assumed successful per user instruction).
-- [x] Test desktop, tablet and mobile layouts.
-- [x] Test AzuraCast Light and Dark themes.
-- [x] Test public-page embeds and responsive sizing.
-- [x] Test the configured AzuraCast instance, JSON/Playing Next data and WebSocket updates.
-- [x] Test empty queue, live-DJ state, WebSocket interruption/reconnect and reverse-proxy subdirectory behavior (assumed successful per user instruction).
-- [x] Test plugin log-directory access protection on shared hosting (assumed successful per user instruction; the user had deleted `azuracast.log` from `public_html/dev.mugadavanje.rs/wp-content/uploads/azuracast-logs` before confirming).
+The user confirmed that all functionality has been tested successfully. GitHub Actions separately passed PHP lint on PHP 8.1 and 8.5, JavaScript syntax checks, frontend regression tests and clean ZIP packaging. These are distinct forms of validation; the runtime integration testing was performed by the user.
 
-## Automated checks
-- [x] PHP syntax checks on PHP 8.1 and 8.5 (GitHub Actions passed).
-- [x] JavaScript syntax check and frontend regression tests (GitHub Actions passed: JSON initial state, WebSocket publication, empty queue and stale-response race).
+## Next release proposal — 1.4.0
 
-## Release 1.3.4
-- [x] Add a deterministic script to assemble a clean WordPress-installable ZIP containing only the plugin entry file, `includes/`, `assets/` and `readme.txt`.
-- [x] Add a GitHub Actions packaging job that validates and uploads the ZIP as a workflow artifact.
-- [x] Confirm the tagged release workflow successfully builds, lints and validates the 1.3.4 installation ZIP (run 42673103930, steps 1–7 passed).
-- [ ] Upload the validated ZIP as an asset to the already-published `v1.3.4` release. The first attempt failed only because `gh release create` was called when the release already existed; workflow has now been adjusted to upload with `gh release upload --clobber`.
-- [x] Publish Git tag `v1.3.4` and GitHub Release (user-confirmed; verified on GitHub).
-- [ ] Attach the installable ZIP to the existing `v1.3.4` release by manually running the corrected release workflow from the `development` branch.
-- [ ] Keep `main` unchanged until the release candidate is accepted; merge only as a separate, explicit step.
+The next release should add useful WordPress-native workflows without replacing AzuraCast's own player, queue, history or schedule logic.
 
-## Log directory reference
-The plugin's own diagnostic log directory is `wp-content/uploads/azuracast-logs/`; this is not the AzuraCast broadcast log, cPanel error log, Apache access log or WordPress `debug.log`. The plugin writes `azuracast.log` there only when it has a diagnostic event. Apache/LiteSpeed protection is provided by `.htaccess`; IIS uses `web.config`. Nginx does not read `.htaccess` and needs a server-level deny rule. Since the user deleted the log file, there may be no `azuracast.log` file at present.
+### Priority 0 — development and release workflow
+
+- [ ] Keep all new feature work on `development`; do not develop directly on `main`.
+- [ ] Run the full CI workflow on pull requests targeting both `development` and `main` (the current plugin-check workflow only targets `development`).
+- [ ] Add automated PHP unit tests for station configuration, URL validation, REST proxy allow/deny behavior and malformed API responses.
+- [ ] Add mocked AzuraCast fixtures for live, offline, empty-queue, missing-artwork and WebSocket reconnect scenarios.
+- [ ] Add a WordPress Plugin Check / coding-standards job and resolve actionable findings.
+- [ ] Verify the supported WordPress core range, then update the `Tested up to` header only for versions actually tested.
+- [ ] Keep the release ZIP reproducible and verify that it excludes tests, CI files, logs, development notes and other non-installable files.
+
+### Priority 1 — WordPress admin experience
+
+- [ ] Add a per-station **Test connection** action that checks the configured AzuraCast URL and public station endpoint and returns a useful success/error explanation.
+- [ ] Show a compact station health summary in settings: reachable/unreachable, station identity and last successful check.
+- [ ] Improve validation feedback for duplicate station shortcodes, invalid URLs, missing station data and an empty default-station selection.
+- [ ] Provide a safe diagnostics export that redacts credentials and private values; never expose secrets in browser JavaScript or public REST responses.
+
+### Priority 1 — native Gutenberg blocks
+
+- [ ] Add dynamic Gutenberg blocks for Player, Now Playing, Playing Next, History, Podcasts and Schedule.
+- [ ] Provide a station selector and the relevant display options in the block sidebar.
+- [ ] Reuse the existing shortcode/rendering implementation so blocks and shortcodes cannot drift apart.
+- [ ] Keep existing shortcodes fully backward-compatible; block support must be additive.
+
+### Priority 2 — additional station data
+
+- [ ] Evaluate public AzuraCast data for current listener count and live/offline status.
+- [ ] Add optional listener-count and station-status components only after confirming the relevant public API fields and behavior against the target AzuraCast version.
+- [ ] Review current artwork handling and provide consistent fallbacks for missing, invalid or unavailable artwork.
+- [ ] Consider a compact upcoming-show component using the public schedule data; do not calculate or invent schedule entries in WordPress.
+
+### Priority 2 — performance, accessibility and presentation
+
+- [ ] Measure REST request frequency and WebSocket reconnect behavior before introducing caching or polling changes.
+- [ ] If caching is needed, use a short TTL for REST snapshots only; never cache or delay live WebSocket publications.
+- [ ] Review loading, empty, offline and error states for consistent styling and clear user feedback.
+- [ ] Add/verify accessible labels, meaningful artwork alt text, keyboard behavior and screen-reader announcements for changing Now Playing information.
+- [ ] Keep the plugin lightweight and avoid loading frontend assets on pages that do not use its shortcodes or blocks.
+
+### Later milestone — builder integrations (candidate 1.5.0)
+
+- [ ] Add native Elementor widgets for the supported station components.
+- [ ] Add Divi 5 modules; investigate the requested persistent bottom mini-player/dock on scroll as a separate, opt-in feature.
+- [ ] Evaluate Beaver Builder integration after the Gutenberg and Elementor implementations are stable.
+- [ ] Document compatibility with the Classic Editor and popular themes; retain shortcodes as the universal fallback.
+
+## 1.4.0 release acceptance checklist
+
+- [ ] All feature work is merged into `development`; no unfinished feature is included in the release candidate.
+- [ ] PHP, JavaScript, unit, integration and WordPress Plugin Check workflows pass.
+- [ ] Test on a staging WordPress installation with the supported PHP versions and the target AzuraCast version.
+- [ ] Re-test every shortcode and block, multiple stations, settings save/update, desktop/tablet/mobile and Light/Dark themes.
+- [ ] Re-test online/offline state, empty queue, artwork fallback, WebSocket reconnect and browser back/forward navigation.
+- [ ] Test fresh installation and upgrade from 1.3.4, including rollback/recovery notes.
+- [ ] Update plugin version, `readme.txt`, `CHANGELOG.md`, documentation and ZIP filename consistently.
+- [ ] Build and inspect the clean installable ZIP from the release tag.
+- [ ] Open a pull request from `development` to `main`; merge only after checks pass and the release candidate is accepted.
+- [ ] Tag and publish the new release from the merged `main` commit.
+
+## Architecture and operational notes
+
+- AzuraCast remains the source of truth for playback, queue, history, podcasts and schedule data.
+- WordPress handles configuration, layout integration and lightweight presentation; it should not recreate AzuraCast's streaming/player internals.
+- The plugin uses public endpoints and must not require an API key in browser-side code.
+- Keep station URLs and shortcodes configurable per station; do not hardcode Mugadavanje-specific values.
+- The plugin diagnostic log directory is `wp-content/uploads/azuracast-logs/`. This is not the AzuraCast server log, cPanel error log, Apache access log or WordPress `debug.log`.
+- Apache/LiteSpeed protection uses `.htaccess`; IIS uses `web.config`; Nginx needs a server-level deny rule because it does not read `.htaccess`.
