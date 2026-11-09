@@ -51,6 +51,7 @@ The next release should add useful WordPress-native workflows without replacing 
 - [x] Reuse the existing shortcode rendering implementation for dynamic block output.
 - [x] Keep existing shortcodes fully backward-compatible; block support is additive.
 - [x] Add Node.js editor tests covering registration of all eight blocks and the History limit control.
+- [x] Add PHP CLI tests for dynamic block registration, editor configuration, server-render callbacks, station sanitization and History limit bounds.
 - [ ] Verify block insertion, sidebar controls, saved attributes and frontend rendering on the staging WordPress site (runtime editor testing is still required).
 - [ ] Verify the station connection test in the WordPress admin against the configured AzuraCast station.
 
