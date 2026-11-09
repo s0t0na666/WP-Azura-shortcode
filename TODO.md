@@ -29,7 +29,7 @@ The next release should add useful WordPress-native workflows without replacing 
 - [x] Run the full CI workflow on pull requests targeting both `development` and `main`; editor bundle syntax and all Node regression tests are included.
 - [x] Add PHP CLI regression tests for station configuration, URL validation, REST resource allow-listing, endpoint construction, cache TTLs, malformed API responses and REST proxy status handling.
 - [x] Add CLI regression tests for the administrator-only station connection action (permission, nonce, unknown station, success, upstream HTTP error, malformed payload and network failure).
-- [ ] Add mocked AzuraCast fixtures for live, offline, empty-queue, missing-artwork and WebSocket reconnect scenarios.
+- [x] Add mocked AzuraCast payload scenarios for live DJ/AutoDJ, API-unavailable state, empty queue, missing/invalid/failed artwork and WebSocket reconnect with snapshot refresh.
 - [x] Add the official WordPress Plugin Check job; the clean plugin archive passed the general, security, performance and accessibility categories.
 - [ ] Verify the supported WordPress core range, then update the `Tested up to` header only for versions actually tested.
 - [x] Keep the release ZIP reproducible and verify that it excludes tests, CI files, logs, development notes and other non-installable files; include and validate the new block registration/editor files.
@@ -67,8 +67,8 @@ The next release should add useful WordPress-native workflows without replacing 
 
 - [ ] Measure REST request frequency and WebSocket reconnect behavior before introducing caching or polling changes.
 - [ ] If caching is needed, use a short TTL for REST snapshots only; never cache or delay live WebSocket publications.
-- [ ] Review loading, empty, offline and error states for consistent styling and clear user feedback.
-- [ ] Add/verify accessible labels, meaningful artwork alt text, keyboard behavior and screen-reader announcements for changing Now Playing information.
+- [x] Cover core loading, empty-queue, unavailable API, missing-artwork and reconnect/error states with clear user feedback and regression tests.
+- [ ] Complete a full staging accessibility review for keyboard and screen-reader behavior; current code provides artwork alt text/fallback labels and polite atomic live regions for changing Now Playing, Playing Next and listener/broadcast indicators.
 - [ ] Keep the plugin lightweight and avoid loading frontend assets on pages that do not use its shortcodes or blocks.
 
 ### Later milestone — builder integrations (candidate 1.5.0)
@@ -81,10 +81,10 @@ The next release should add useful WordPress-native workflows without replacing 
 ## 1.4.0 release acceptance checklist
 
 - [x] All currently implemented feature work is committed to `development`; remaining items are staging validation and release-readiness tasks. No changes have been merged into `main`.
-- [ ] PHP, JavaScript, unit, integration and WordPress Plugin Check workflows pass.
+- [x] PHP CLI, JavaScript regression, package validation and WordPress Plugin Check workflows pass on the current development candidate (live WordPress/AzuraCast staging validation remains separate).
 - [ ] Test on a staging WordPress installation with the supported PHP versions and the target AzuraCast version.
 - [ ] Re-test every shortcode and block, multiple stations, settings save/update, desktop/tablet/mobile and Light/Dark themes.
-- [ ] Re-test online/offline state, empty queue, artwork fallback, WebSocket reconnect and browser back/forward navigation, plus the new Listener Count and Broadcast Mode components.
+- [ ] Re-test online/offline state, empty queue, artwork fallback, WebSocket reconnect and browser back/forward navigation, plus the new Listener Count and Broadcast Mode components on the staging site.
 - [ ] Test fresh installation and upgrade from 1.3.4, including rollback/recovery notes.
 - [ ] Update plugin version, `readme.txt`, `CHANGELOG.md`, documentation and ZIP filename consistently.
 - [ ] Build and inspect the clean installable ZIP from the release tag.
