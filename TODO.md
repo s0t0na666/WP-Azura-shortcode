@@ -40,8 +40,8 @@ The user reports that all elements work correctly, responsive layouts and both t
 ## Release 1.3.4
 - [x] Add a deterministic script to assemble a clean WordPress-installable ZIP containing only the plugin entry file, `includes/`, `assets/` and `readme.txt`.
 - [x] Add a GitHub Actions packaging job that validates and uploads the ZIP as a workflow artifact.
-- [ ] Confirm the packaging job succeeds and inspect the generated ZIP artifact.
-- [ ] Publish Git tag `v1.3.4` and GitHub Release with the ZIP attached.
+- [ ] Confirm the packaging job succeeds and inspect the generated ZIP artifact. The first combined workflow and the separated package workflow both returned failure with zero jobs created; no ZIP artifact was produced. Retry after GitHub Actions runner/event processing recovers.
+- [ ] Publish Git tag `v1.3.4` and GitHub Release with the ZIP attached. The release workflow is configured to build, validate and attach the installable ZIP automatically when the tag is published.
 - [ ] Keep `main` unchanged until the release candidate is accepted; merge only as a separate, explicit step.
 
 ## Log directory reference

@@ -1,0 +1,9 @@
+# Keep development-only files out of GitHub source archives.
+.github/** export-ignore
+tests/** export-ignore
+scripts/** export-ignore
+.gitignore export-ignore
+.gitattributes export-ignore
+README.md export-ignore
+TODO.md export-ignore
+CHANGELOG.md export-ignore
