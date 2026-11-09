@@ -28,6 +28,7 @@ The next release should add useful WordPress-native workflows without replacing 
 - [ ] Keep all new feature work on `development`; do not develop directly on `main`.
 - [x] Run the full CI workflow on pull requests targeting both `development` and `main`; editor bundle syntax and all Node regression tests are included.
 - [ ] Add automated PHP unit tests for station configuration, URL validation, REST proxy allow/deny behavior and malformed API responses.
+- [x] Add CLI regression tests for the administrator-only station connection action (permission, nonce, unknown station, success, upstream HTTP error, malformed payload and network failure).
 - [ ] Add mocked AzuraCast fixtures for live, offline, empty-queue, missing-artwork and WebSocket reconnect scenarios.
 - [ ] Add a WordPress Plugin Check / coding-standards job and resolve actionable findings.
 - [ ] Verify the supported WordPress core range, then update the `Tested up to` header only for versions actually tested.
@@ -47,6 +48,7 @@ The next release should add useful WordPress-native workflows without replacing 
 - [x] Provide a default/configured station selector and a History entry-limit control in the block sidebar.
 - [x] Reuse the existing shortcode rendering implementation for dynamic block output.
 - [x] Keep existing shortcodes fully backward-compatible; block support is additive.
+- [x] Add Node.js editor tests covering registration of all six blocks and the History limit control.
 - [ ] Verify block insertion, sidebar controls, saved attributes and frontend rendering on the staging WordPress site (runtime editor testing is still required).
 - [ ] Verify the station connection test in the WordPress admin against the configured AzuraCast station.
 
