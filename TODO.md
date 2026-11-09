@@ -18,7 +18,7 @@
 - [x] Keep WordPress responsible for station configuration, shortcode handling, and lightweight responsive embed/component wrappers.
 - [x] For standalone data items that have no AzuraCast public embed, consume AzuraCast's own public API/WebSocket data; do not synthesize metadata or infer tracks from playback history.
 - [x] Preserve existing WordPress shortcode names and dynamic station selection where practical, so existing pages can continue to use their current shortcode interface.
-- [ ] Verify responsive sizing, theme selection, and embed behavior for each AzuraCast component on desktop and mobile.
+- [x] Verify responsive sizing, theme selection, and embed behavior for each AzuraCast component on desktop, tablet and mobile (user-confirmed 2026-11-09).
 
 ## AzuraCast 0.24.0 public UI and data inventory (source reviewed)
 - [x] Confirm the official Player embed is available at the station public page's `/embed` route and is rendered by AzuraCast's `Public/Player` Vue component.
@@ -35,7 +35,7 @@
 - [x] Prevent a late REST response from overwriting newer WebSocket data or replacing it with an old error state.
 - [x] User-confirmed functional test against the configured AzuraCast/WordPress setup: player, Now Playing, Playing Next, History, Podcasts and Schedule all work (reported 2026-11-09).
 - [x] Verify actual Now Playing JSON/WebSocket data updates Playing Next with a queued track (covered by the user's successful end-to-end test).
-- [ ] Separately verify edge cases: empty queue/live-DJ state, WebSocket interruption/reconnect and reverse-proxy subdirectory behavior.
+- [ ] Separately verify edge cases: empty queue/live-DJ state, WebSocket interruption/reconnect and reverse-proxy subdirectory behavior (user has not yet tested these).
 
 Source references:
 - [AzuraCast 0.24.0 PlayerAction](https://github.com/AzuraCast/AzuraCast/blob/0.24.0/backend/src/Controller/Frontend/PublicPages/PlayerAction.php)
@@ -51,20 +51,24 @@ Source references:
 - [x] Confirm the workflow completes successfully on GitHub for the development commit (run 41670958961: PHP 8.1, PHP 8.5, Node.js syntax and all frontend regression tests passed).
 
 ## User-reported integration test — 2026-11-09
-The user reports that all plugin elements were tested and work correctly. The completed items below are recorded as user-confirmed, not as independently executed tests by the maintainer. Separate edge-case, browser/responsive and server-protection checks remain open.
+The user confirms that the normal plugin functionality, WordPress installation/settings saving, responsive layout (desktop/tablet/mobile), and Light/Dark themes all work. These are recorded as user-confirmed, not as independently executed tests by the maintainer. Empty-queue/reconnect behavior and server log-directory access rules have not yet been tested.
 
 ## Remaining WordPress/AzuraCast runtime and release checks
 - [x] Run PHP syntax checks on PHP 8.1 and PHP 8.5 (GitHub Actions passed).
 - [x] Run JavaScript syntax check and frontend regression tests in Node.js (GitHub Actions passed).
-- [ ] Verify JavaScript behavior in supported desktop and mobile browsers.
+- [x] Verify JavaScript behavior and responsive layout on desktop, tablet and mobile (user-confirmed 2026-11-09).
 - [x] Verify all functional shortcodes render and work on the user's test WordPress site (user-confirmed 2026-11-09).
-- [ ] Test first-install behavior, saving/editing station settings, invalid station rows and empty configuration in a clean WordPress installation.
+- [x] Install plugin on WordPress and verify normal station setup/settings saving (user-confirmed 2026-11-09).
+- [ ] Test invalid station rows, duplicate shortcodes and empty configuration handling separately.
 - [x] Verify the Player, History, Podcasts and Schedule public-page embeds load on the user's test site (user-confirmed as part of the complete element test, 2026-11-09).
-- [ ] Verify light/dark theme selection and responsive iframe sizing on desktop, tablet and mobile.
+- [x] Verify Light/Dark theme selection and responsive iframe sizing on desktop, tablet and mobile (user-confirmed 2026-11-09).
 - [x] Verify the plugin's radio elements against the configured target AzuraCast instance (user-confirmed 2026-11-09).
 - [ ] Separately test an AzuraCast installation served from a reverse-proxy subdirectory.
-- [ ] Verify log-directory access denial on Apache/LiteSpeed and IIS; install the Nginx rule where applicable.
+- [ ] Verify that the plugin's own log directory is not publicly accessible on the shared host (see the log-protection note below).
 - [x] Install and test the current development build on the user's WordPress test site (user-confirmed 2026-11-09).
 - [ ] Prepare a clean, versioned release ZIP and verify its contents before tagging a release.
+
+### Log directory: what is being protected?
+The plugin writes its own diagnostic log files to `wp-content/uploads/azuracast-logs/`. These are not the AzuraCast broadcast logs, cPanel error logs, Apache access logs or WordPress `debug.log`. The directory may contain technical error details and is intended for administrators only. The plugin creates `.htaccess` protection for Apache/LiteSpeed and `web.config` protection for IIS. Nginx does not read `.htaccess`; it needs a server-level `location` deny rule. On shared hosting, first check the direct URL `https://YOUR-DOMAIN/wp-content/uploads/azuracast-logs/` and, if you know a log filename, try opening that exact file URL. A 403/404 or an access-denied response is expected; if a log file displays in the browser, protection is missing. Do not delete the directory or change server configuration until the host/web-server type is confirmed.
 
 The public demo JSON confirms the data shape only. Source review and CI checks do not count as live integration tests.
