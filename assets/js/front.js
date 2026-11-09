@@ -272,6 +272,7 @@
             }
             socket.onopen = () => {
                 retryDelay = 1000;
+                setStatus('');
                 const subscriptions = {};
                 subscriptions[`station:${config.shortcode}`] = { recover: true };
                 socket.send(JSON.stringify({ subs: subscriptions }));
