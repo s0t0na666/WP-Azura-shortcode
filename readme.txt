@@ -64,7 +64,8 @@ location ^~ /wp-content/uploads/azuracast-logs/ {
 = 1.4.0 =
 * Added dynamic Gutenberg blocks for all eight station components.
 * Added an administrator-only station connection test, per-station health history and a sanitized diagnostics export.
-* Added listener-count and Live DJ/AutoDJ display components.\n* Added an accessible fallback for missing or unavailable album artwork.
+* Added listener-count and Live DJ/AutoDJ display components.
+* Added an accessible fallback for missing or unavailable album artwork.
 * Expanded PHP CLI and JavaScript regression tests for station configuration, API proxy behavior and frontend updates.
 * Added the official WordPress Plugin Check workflow for clean release archives.
 
