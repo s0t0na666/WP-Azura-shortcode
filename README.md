@@ -15,8 +15,9 @@ AzuraCast 0.24.0 does not provide a dedicated public Player/Next embed, although
 The public AzuraCast demo's static Now Playing JSON was checked and contains `playing_next.song.artist`, `playing_next.song.title`, and `playing_next.song.art`. This confirms the documented data shape, but does **not** replace live testing against the target station.
 
 Automated checks are configured for pushes and pull requests targeting the `development` branch:
-- PHP syntax lint on PHP 8.1 and PHP 8.5.
-- JavaScript syntax checking and Node.js regression tests for initial JSON, real-time WebSocket updates, an empty queue, and stale-response ordering.
+- PHP syntax lint and CLI regression scripts on PHP 8.1 and PHP 8.5. The PHP tests cover station configuration and URL validation, the public API resource allow-list, proxy endpoint construction, cache TTLs, upstream failures, the administrator connection check and diagnostics privacy.
+- JavaScript syntax checking and Node.js regression tests for all eight Gutenberg block registrations, initial Now Playing JSON, real-time WebSocket updates, an empty Playing Next queue, stale-response ordering, listener counts and Live DJ/AutoDJ states.
+- The official WordPress Plugin Check action runs against a clean installable archive, covering general, security, performance and accessibility checks.
 
 The source has been reviewed against the AzuraCast 0.24.0 OpenAPI schema and public route definitions. Source review and CI syntax/unit checks do **not** replace runtime integration tests against the target AzuraCast instance and a staging WordPress site. See [TODO.md](TODO.md) for the remaining checks.
 
