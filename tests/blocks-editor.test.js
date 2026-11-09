@@ -43,8 +43,8 @@ test('registers all six dynamic AzuraCast blocks', () => {
         'azns/history',
         'azns/now-playing',
         'azns/player',
-        'azns/podcasts',
         'azns/playing-next',
+        'azns/podcasts',
         'azns/schedule',
     ]);
     for (const block of Object.values(registered)) {
