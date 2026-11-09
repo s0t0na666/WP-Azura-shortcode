@@ -1,0 +1,48 @@
+name: Plugin checks
+
+on:
+  push:
+    branches:
+      - development
+  pull_request:
+    branches:
+      - development
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  php-lint:
+    name: PHP syntax (PHP ${{ matrix.php-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ['8.1', '8.5']
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: none
+      - name: Lint all PHP files
+        run: |
+          find . -type f -name '*.php' -not -path './.git/*' -print0 | xargs -0 -n1 php -l
+
+  frontend:
+    name: JavaScript syntax and regression tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check frontend JavaScript syntax
+        run: node --check assets/js/front.js
+      - name: Run frontend regression tests
+        run: node --test tests/front-js.test.js

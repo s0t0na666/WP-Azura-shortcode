@@ -1,0 +1,59 @@
+name: Publish AzuraCast Suite release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing version tag to build and upload to its GitHub Release
+        required: true
+        type: string
+        default: v1.3.4
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish tagged release
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref }}
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          coverage: none
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify tag matches plugin version
+        run: |
+          VERSION="$(sed -nE 's/^[[:space:]]*\* Version: ([0-9]+\.[0-9]+\.[0-9]+)$/\1/p' azuracast-native-suite.php | head -n 1)"
+          test "$RELEASE_TAG" = "v$VERSION"
+      - name: Run release checks
+        run: |
+          find . -type f -name '*.php' -not -path './.git/*' -print0 | xargs -0 -n1 php -l
+          node --check assets/js/front.js
+          node --test tests/front-js.test.js
+      - name: Build clean installable ZIP
+        run: bash scripts/build-release.sh "${{ runner.temp }}/release-package"
+      - name: Upload ZIP to the existing release or create a new release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ZIP_PATH="$(find "${{ runner.temp }}/release-package" -maxdepth 1 -type f -name 'azuracast-native-suite-*.zip' -print -quit)"
+          test -n "$ZIP_PATH"
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "$ZIP_PATH" --clobber
+          else
+            gh release create "$RELEASE_TAG" "$ZIP_PATH" --verify-tag --title "AzuraCast Suite ${RELEASE_TAG#v}" --generate-notes
+          fi

@@ -19,8 +19,9 @@ final class AZNS_API {
             // Public podcast listing, rather than the authenticated station-management endpoint.
             $path = '/api/station/' . $station_id . '/public/podcasts';
         } elseif ($kind === 'podcast_episodes') {
+            if (!is_scalar($podcast_id)) return new WP_Error('azns_podcast_id', 'Podcast ID is required.');
             $podcast_id = trim((string) $podcast_id);
-            if ($podcast_id === '') { return new WP_Error('azns_podcast_id', 'Podcast ID is required.'); }
+            if ($podcast_id === '') return new WP_Error('azns_podcast_id', 'Podcast ID is required.');
             $path = '/api/station/' . $station_id . '/public/podcast/' . rawurlencode($podcast_id) . '/episodes';
         } else {
             $path = '/api/station/' . $station_id . '/schedule';
@@ -33,7 +34,8 @@ final class AZNS_API {
         $headers = ['Accept' => 'application/json'];
         $response = wp_remote_get($station['url'] . $path, [
             'timeout' => 12,
-            'redirection' => 2,
+            // Do not follow public proxy requests to unrelated or private redirect targets.
+            'redirection' => 0,
             'sslverify' => true,
             'headers' => $headers,
         ]);
@@ -63,7 +65,7 @@ final class AZNS_API {
                 $station = $this->stations->get($request['shortcode']);
                 if (!$station) { return new WP_Error('azns_station', 'Station not configured', ['status' => 404]); }
                 $podcast_id = $request->get_param('podcast_id');
-                if ($request['resource'] === 'podcast-episodes' && !$podcast_id) {
+                if ($request['resource'] === 'podcast-episodes' && (!is_scalar($podcast_id) || trim((string) $podcast_id) === '')) {
                     return new WP_Error('azns_podcast_id', 'Podcast ID is required.', ['status' => 400]);
                 }
                 $kind = ($request['resource'] === 'podcast-episodes') ? 'podcast_episodes' : $request['resource'];

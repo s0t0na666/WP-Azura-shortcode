@@ -24,17 +24,35 @@
             target.append(make('span', '', 'No track available'));
             return;
         }
-        if (showArt && song.art) {
+        const artUrl = (typeof song.art === 'string') ? song.art.trim() : '';
+        if (showArt && /^https?:\/\//i.test(artUrl)) {
             const image = make('img', 'azns-art');
-            image.src = song.art;
+            image.src = artUrl;
             image.alt = 'Album artwork';
             image.loading = 'lazy';
+            image.referrerPolicy = 'no-referrer';
             image.onerror = () => image.remove();
             target.append(image);
         }
         const meta = make('div', 'azns-track-meta');
         meta.append(make('strong', 'azns-title', trackLabel(song)));
         target.append(meta);
+    }
+
+    function renderNextTrack(target, nowPlaying, showArt) {
+        target.replaceChildren();
+        if (!Object.prototype.hasOwnProperty.call(nowPlaying, 'playing_next')) {
+            target.append(make('span', '', 'Next track information is not available from AzuraCast.'));
+            return;
+        }
+
+        const next = nowPlaying.playing_next;
+        if (!next || !next.song) {
+            target.append(make('span', '', 'No upcoming track is currently queued.'));
+            return;
+        }
+
+        renderTrack(target, next, showArt);
     }
 
     function renderPodcastList(widget, podcasts, config) {
@@ -77,10 +95,12 @@
                     if (episode.description_short || episode.description) {
                         entry.append(make('p', '', episode.description_short || episode.description));
                     }
-                    if (episode.publish_at) {
+                    const publishedAt = Number(episode.publish_at);
+                    const publishedDate = new Date(publishedAt * 1000);
+                    if (Number.isFinite(publishedAt) && Number.isFinite(publishedDate.getTime())) {
                         const time = make('time', '');
-                        time.dateTime = new Date(Number(episode.publish_at) * 1000).toISOString();
-                        time.textContent = new Date(Number(episode.publish_at) * 1000).toLocaleDateString();
+                        time.dateTime = publishedDate.toISOString();
+                        time.textContent = publishedDate.toLocaleDateString();
                         entry.append(time);
                     }
                     // The 0.24.0 schema exposes media metadata/path but does not define a public media URL field.
@@ -126,10 +146,17 @@
         let socket = null;
         let retryTimer = null;
         let retryDelay = 1000;
+        // Prevent a slow REST snapshot from overwriting a newer WebSocket publication.
+        let realtimeRevision = 0;
 
-        const setStatus = message => { if (status) status.textContent = message; };
+        const setStatus = message => {
+            if (!status) return;
+            status.textContent = message;
+            status.hidden = !message;
+        };
         const applyNowPlaying = data => {
             if (!data || typeof data !== 'object') return;
+            setStatus('');
             if (type === 'history') {
                 const list = widget.querySelector('.azns-history');
                 list.replaceChildren();
@@ -138,7 +165,7 @@
                 });
                 if (!list.children.length) list.append(make('li', '', 'No recent tracks'));
             } else if (type === 'next') {
-                renderTrack(widget.querySelector('.azns-next'), data.playing_next, config.art);
+                renderNextTrack(widget.querySelector('.azns-next'), data, config.art);
             } else {
                 const target = widget.querySelector('.azns-current');
                 renderTrack(target, data.now_playing, config.art);
@@ -152,15 +179,25 @@
         };
 
         const load = async resource => {
+            const revisionAtRequest = (resource === 'nowplaying') ? realtimeRevision : 0;
             try {
                 const response = await fetch(config.rest + resource, { credentials: 'same-origin' });
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.json();
-                if (resource === 'nowplaying') applyNowPlaying(data);
-                else if (resource === 'podcasts') renderPodcastList(widget, data, config);
-                else if (resource === 'schedule') renderSchedule(widget, data);
+                if (!active) return;
+                if (resource === 'nowplaying') {
+                    // Keep the real-time publication when it arrived after this request began.
+                    if (realtimeRevision === revisionAtRequest) applyNowPlaying(data);
+                } else if (resource === 'podcasts') {
+                    renderPodcastList(widget, data, config);
+                } else if (resource === 'schedule') {
+                    renderSchedule(widget, data);
+                }
             } catch (error) {
-                setStatus(`Unable to load ${resource}`);
+                // A failed, older snapshot must not replace the state supplied by the live feed.
+                if (resource !== 'nowplaying' || realtimeRevision === revisionAtRequest) {
+                    setStatus(`Unable to load ${resource}`);
+                }
             }
         };
 
@@ -171,14 +208,20 @@
 
         load('nowplaying');
         const handlePayload = payload => {
-            const data = payload?.data;
-            if (data?.np) applyNowPlaying(data.np);
+            // AzuraCast publishes the full Now Playing JSON object inside pub.data.np.
+            // The next item is therefore available at pub.data.np.playing_next.
+            const data = payload?.data?.np;
+            if (data && typeof data === 'object') {
+                realtimeRevision += 1;
+                applyNowPlaying(data);
+            }
         };
         const retry = () => {
             if (!active) return;
             setStatus('Connection lost; reconnecting…');
             clearTimeout(retryTimer);
             retryTimer = setTimeout(() => {
+                // Refresh the JSON snapshot as well as reconnecting the real-time feed.
                 load('nowplaying');
                 connect();
             }, retryDelay);
@@ -189,7 +232,8 @@
             try {
                 const server = new URL(config.server);
                 const protocol = server.protocol === 'https:' ? 'wss:' : 'ws:';
-                socket = new WebSocket(`${protocol}//${server.host}/api/live/nowplaying/websocket`);
+                const basePath = server.pathname.replace(/\/+$/, '');
+                socket = new WebSocket(`${protocol}//${server.host}${basePath}/api/live/nowplaying/websocket`);
             } catch (error) {
                 retry();
                 return;
@@ -222,12 +266,24 @@
         widget._aznsClose = () => {
             active = false;
             clearTimeout(retryTimer);
-            if (socket) socket.close();
+            if (socket) {
+                socket.onclose = null;
+                socket.onerror = null;
+                socket.close();
+            }
+            widget._aznsClose = null;
         };
     }
 
-    const start = () => document.querySelectorAll('.azns[data-type]').forEach(init);
+    const start = () => document.querySelectorAll('.azns[data-type]').forEach(widget => {
+        if (typeof widget._aznsClose !== 'function') init(widget);
+    });
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
     else start();
-    window.addEventListener('pagehide', () => document.querySelectorAll('.azns[data-type]').forEach(widget => widget._aznsClose?.()));
+    window.addEventListener('pagehide', () => {
+        document.querySelectorAll('.azns[data-type]').forEach(widget => widget._aznsClose?.());
+    });
+    window.addEventListener('pageshow', event => {
+        if (event.persisted) start();
+    });
 })();

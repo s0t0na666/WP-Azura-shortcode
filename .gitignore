@@ -4,5 +4,6 @@ Thumbs.db
 *.zip
 /vendor/
 /node_modules/
-.phpunit.cache/
-.phpcs-cache
+/.phpunit.cache/
+/.phpcs-cache
+/dist/
