@@ -32,6 +32,7 @@ jobs:
       - name: Lint all PHP files
         run: |
           find . -type f -name '*.php' -not -path './.git/*' -print0 | xargs -0 -n1 php -l
+          php tests/admin-connection.test.php
 
   frontend:
     name: JavaScript syntax and regression tests
