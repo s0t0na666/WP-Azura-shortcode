@@ -40,14 +40,14 @@ function response(data) {
     };
 }
 
-function createHarness(fetchImpl) {
+function createHarness(fetchImpl, type = 'next') {
     const sockets = [];
     const target = new FakeElement('div');
     const widget = {
         id: 'azns-test',
-        dataset: { type: 'next', limit: '10' },
+        dataset: { type, limit: '10' },
         querySelector(selector) {
-            if (selector === '.azns-next') return target;
+            if (selector === '.azns-next' || selector === '.azns-indicator' || selector === '.azns-current') return target;
             if (selector === '.azns-status') return null;
             return null;
         },
@@ -171,4 +171,28 @@ test('does not let a delayed REST snapshot overwrite a newer WebSocket publicati
 
     assert.match(harness.target.textContent, /Fresh WebSocket/);
     assert.doesNotMatch(harness.target.textContent, /Stale REST/);
+});
+
+test('renders current listener count from the AzuraCast Now Playing payload', async () => {
+    const harness = createHarness(async () => response({
+        listeners: { current: 9, total: 12 },
+    }), 'listeners');
+    await flushPromises();
+
+    assert.match(harness.target.textContent, /9 listening/);
+    assert.doesNotMatch(harness.target.textContent, /12 listening/);
+});
+
+test('renders Live DJ and AutoDJ from the authoritative live flag', async () => {
+    const live = createHarness(async () => response({
+        live: { is_live: true, streamer_name: 'Test DJ' },
+    }), 'broadcast');
+    await flushPromises();
+    assert.match(live.target.textContent, /Live DJ — Test DJ/);
+
+    const autodj = createHarness(async () => response({
+        live: { is_live: false, streamer_name: '' },
+    }), 'broadcast');
+    await flushPromises();
+    assert.match(autodj.target.textContent, /AutoDJ/);
 });
