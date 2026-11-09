@@ -56,9 +56,6 @@ function wp_remote_get($url, $args = []) {
 }
 function wp_remote_retrieve_response_code($response) { return $response['status']; }
 function wp_remote_retrieve_body($response) { return $response['body']; }
-function rawurlencode($value) {
-    return urlencode((string) $value);
-}
 
 final class AZNS_Logger {
     public static $entries = [];
