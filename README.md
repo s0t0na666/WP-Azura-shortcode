@@ -20,6 +20,19 @@ Automated checks are configured for pushes and pull requests targeting the `deve
 
 The source has been reviewed against the AzuraCast 0.24.0 OpenAPI schema and public route definitions. Source review and CI syntax/unit checks do **not** replace runtime integration tests against the target AzuraCast instance and a staging WordPress site. See [TODO.md](TODO.md) for the remaining checks.
 
+## Gutenberg blocks — 1.4.0 development
+
+The `development` branch now registers six dynamic Gutenberg blocks:
+
+- AzuraCast Player
+- AzuraCast Now Playing
+- AzuraCast Playing Next
+- AzuraCast History (with a configurable entry limit)
+- AzuraCast Podcasts
+- AzuraCast Schedule
+
+Each block can use the default station or select a configured station in the block sidebar. Blocks reuse the existing shortcode renderer on the server, so the frontend output and AzuraCast data flow remain shared with the shortcode implementation. This work is under development and is not part of the published 1.3.4 release.
+
 ## Configuration
 
 All stations are managed in the WordPress `azns_settings` option through the plugin's administration screen. Station shortcodes and server URLs are not hardcoded into the plugin source.
