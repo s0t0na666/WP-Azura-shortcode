@@ -15,6 +15,8 @@ final class AZNS_Blocks {
         'azns/history' => 'azura_history',
         'azns/podcasts' => 'azura_podcasts',
         'azns/schedule' => 'azura_schedule',
+        'azns/listeners' => 'azura_listeners',
+        'azns/broadcast-mode' => 'azura_broadcast_mode',
     ];
 
     public function __construct($stations, $shortcodes) {
