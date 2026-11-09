@@ -4,7 +4,7 @@ Tags: azuracast, radio, player, streaming, shortcode
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 1.3.4
+Stable tag: 1.4.0
 License: GPL-2.0-or-later
 
 Embeds AzuraCast public pages and provides WordPress components for now playing, Playing Next, playback history, podcasts and schedule.
@@ -35,6 +35,8 @@ Replace `your_station_shortcode` with a shortcode configured in the plugin setti
 * `[azura_history station="your_station_shortcode" limit="10"]`
 * `[azura_podcasts station="your_station_shortcode"]`
 * `[azura_schedule station="your_station_shortcode"]`
+* `[azura_listeners station="your_station_shortcode"]`
+* `[azura_broadcast_mode station="your_station_shortcode"]`
 
 Legacy Playing Next aliases are also supported:
 
@@ -58,6 +60,11 @@ location ^~ /wp-content/uploads/azuracast-logs/ {
 ```
 
 == Changelog ==
+
+= 1.4.0 =
+* Added dynamic Gutenberg blocks for all eight station components.
+* Added an administrator-only station connection test, per-station health history and a sanitized diagnostics export.
+* Added listener-count and Live DJ/AutoDJ display components.
 
 = 1.3.4 =
 * Prevented a delayed Now Playing REST snapshot from overwriting a newer WebSocket update.
