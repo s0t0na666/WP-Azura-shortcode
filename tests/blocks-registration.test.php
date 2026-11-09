@@ -96,7 +96,11 @@ azns_block_assert(
     'The editor bundle must declare its WordPress dependencies.'
 );
 azns_block_assert(count($GLOBALS['azns_block_test_inline']) === 1, 'The configured station list must be supplied once to the editor.');
-$config = json_decode($GLOBALS['azns_block_test_inline'][0]['data'], true);
+$inline_config = $GLOBALS['azns_block_test_inline'][0]['data'];
+$config_prefix = 'window.AZNS_BLOCKS_CONFIG = ';
+$config = str_starts_with($inline_config, $config_prefix)
+    ? json_decode(rtrim(substr($inline_config, strlen($config_prefix)), ';'), true)
+    : null;
 azns_block_assert(
     $config['stations'] === [
         ['label' => 'Mugadavanje Radio (mugadavanje)', 'value' => 'mugadavanje'],
