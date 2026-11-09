@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.4.0 — WordPress-native components and administration (development)
+
+- Added eight dynamic Gutenberg blocks for Player, Now Playing, Playing Next, History, Podcasts, Schedule, Listener Count and Broadcast Mode.
+- Added an administrator-only station connection test with nonce and capability checks.
+- Added per-station health history with last check and last successful check timestamps.
+- Added form feedback for invalid/duplicate station rows and invalid default-station selection.
+- Added a sanitized diagnostics JSON export that omits server URLs and custom CSS and redacts secrets/URLs in log entries.
+- Added listener-count and Live DJ/AutoDJ components using the existing Now Playing JSON/WebSocket feed.
+- Expanded PHP and JavaScript regression coverage and the clean release-package checks.
+
+> This section describes development work on the development branch; it is not a published release. Live WordPress/AzuraCast integration testing remains part of the 1.4.0 release acceptance checklist.
+
 ## 1.3.4 — Playing Next reliability and automated checks
 
 - Prevented a delayed Now Playing REST snapshot from overwriting a newer WebSocket publication.
@@ -9,7 +21,7 @@
 
 ## 1.3.3 — Audit fixes
 
-- Removed the built-in station seed; station entries are read exclusively from `azns_settings`.
+- Removed the built-in station seed; station entries are read exclusively from azns_settings.
 - Hardened station URL parsing, malformed settings handling, and duplicate shortcode handling.
 - Hardened administrator settings saves against malformed arrays and invalid station rows.
 - Improved log-directory protection files for Apache 2.4+, legacy Apache, and IIS; documented the Nginx rule.
