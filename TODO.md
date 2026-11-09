@@ -25,12 +25,12 @@ The next release should add useful WordPress-native workflows without replacing 
 
 ### Priority 0 — development and release workflow
 
-- [ ] Keep all new feature work on `development`; do not develop directly on `main`.
+- [x] Keep all new feature work on `development`; do not develop directly on `main`.
 - [x] Run the full CI workflow on pull requests targeting both `development` and `main`; editor bundle syntax and all Node regression tests are included.
-- [ ] Add automated PHP unit tests for station configuration, URL validation, REST proxy allow/deny behavior and malformed API responses.
+- [x] Add PHP CLI regression tests for station configuration, URL validation, REST resource allow-listing, endpoint construction, cache TTLs, malformed API responses and REST proxy status handling.
 - [x] Add CLI regression tests for the administrator-only station connection action (permission, nonce, unknown station, success, upstream HTTP error, malformed payload and network failure).
 - [ ] Add mocked AzuraCast fixtures for live, offline, empty-queue, missing-artwork and WebSocket reconnect scenarios.
-- [ ] Add a WordPress Plugin Check / coding-standards job and resolve actionable findings.
+- [x] Add the official WordPress Plugin Check job; the clean plugin archive passed the general, security, performance and accessibility categories.
 - [ ] Verify the supported WordPress core range, then update the `Tested up to` header only for versions actually tested.
 - [x] Keep the release ZIP reproducible and verify that it excludes tests, CI files, logs, development notes and other non-installable files; include and validate the new block registration/editor files.
 
@@ -46,17 +46,17 @@ The next release should add useful WordPress-native workflows without replacing 
 
 ### Priority 1 — native Gutenberg blocks
 
-- [x] Register dynamic Gutenberg blocks for Player, Now Playing, Playing Next, History, Podcasts and Schedule on `development`.
+- [x] Register dynamic Gutenberg blocks for Player, Now Playing, Playing Next, History, Podcasts, Schedule, Listener Count and Broadcast Mode on `development`.
 - [x] Provide a default/configured station selector and a History entry-limit control in the block sidebar.
 - [x] Reuse the existing shortcode rendering implementation for dynamic block output.
 - [x] Keep existing shortcodes fully backward-compatible; block support is additive.
-- [x] Add Node.js editor tests covering registration of all six blocks and the History limit control.
+- [x] Add Node.js editor tests covering registration of all eight blocks and the History limit control.
 - [ ] Verify block insertion, sidebar controls, saved attributes and frontend rendering on the staging WordPress site (runtime editor testing is still required).
 - [ ] Verify the station connection test in the WordPress admin against the configured AzuraCast station.
 
 ### Priority 2 — additional station data
 
-- [ ] Evaluate public AzuraCast data for current listener count and live/offline status.
+- [x] Evaluate public AzuraCast data for current listener count and live broadcast mode; do not equate AutoDJ with a server outage.
 - [x] Add optional listener-count and broadcast-mode components using the existing Now Playing payload: `listeners.current` (fallback `listeners.total`) and the explicit boolean `live.is_live`. The component displays Live DJ/AutoDJ and does not claim server online/offline status.
 - [ ] Review current artwork handling and provide consistent fallbacks for missing, invalid or unavailable artwork.
 - [x] Add frontend tests for listener counts, Live DJ and AutoDJ states.
