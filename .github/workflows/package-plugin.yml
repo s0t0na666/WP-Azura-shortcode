@@ -30,7 +30,7 @@ jobs:
           node --check assets/js/front.js
           node --check assets/js/blocks.js
           node --test tests/*.test.js
-          php tests/admin-connection.test.php
+          for test_file in tests/*.test.php; do php "$test_file"; done
       - name: Build clean release ZIP and lint included PHP
         run: bash scripts/build-release.sh "${{ runner.temp }}/release-package"
       - name: Upload installable ZIP artifact
