@@ -57,6 +57,8 @@ function response(data) {
 
 function createHarness(fetchImpl, type = 'next', art = false) {
     const sockets = [];
+    const timers = [];
+    let nextTimerId = 0;
     const target = new FakeElement('div');
     const widget = {
         id: 'azns-test',
@@ -105,13 +107,20 @@ function createHarness(fetchImpl, type = 'next', art = false) {
         URL,
         WebSocket: FakeWebSocket,
         fetch: fetchImpl,
-        setTimeout: () => 1,
-        clearTimeout() {},
+        setTimeout: (callback, delay) => {
+            const timer = { id: ++nextTimerId, callback, delay, cleared: false };
+            timers.push(timer);
+            return timer.id;
+        },
+        clearTimeout: id => {
+            const timer = timers.find(item => item.id === id);
+            if (timer) timer.cleared = true;
+        },
         console,
     };
 
     vm.runInNewContext(source, sandbox, { filename: 'front.js' });
-    return { target, sockets, widget };
+    return { target, sockets, widget, timers };
 }
 
 function nextData(title, artist = 'Test Artist') {
@@ -250,4 +259,28 @@ test('removes the artwork fallback after a successful image load', async () => {
     image.onload();
     assert.equal(harness.target.children.includes(fallback), false);
     assert.equal(harness.target.children.includes(image), true);
+});
+
+test('refreshes the Now Playing snapshot and reconnects after the WebSocket closes', async () => {
+    let fetchCount = 0;
+    const harness = createHarness(async () => {
+        fetchCount += 1;
+        return response(nextData(`Snapshot ${fetchCount}`));
+    });
+    await flushPromises();
+
+    assert.equal(fetchCount, 1);
+    assert.equal(harness.sockets.length, 1);
+
+    harness.sockets[0].onclose();
+    const retryTimer = harness.timers.find(timer => !timer.cleared);
+    assert.ok(retryTimer, 'A reconnect timer should be scheduled after the socket closes.');
+    assert.equal(retryTimer.delay, 1000);
+
+    retryTimer.callback();
+    await flushPromises();
+
+    assert.equal(fetchCount, 2, 'The REST snapshot should refresh during reconnection.');
+    assert.equal(harness.sockets.length, 2, 'A new WebSocket connection should be created.');
+    assert.match(harness.target.textContent, /Snapshot 2/);
 });
