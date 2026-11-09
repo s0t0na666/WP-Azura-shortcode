@@ -28,7 +28,8 @@ jobs:
       - name: Run frontend syntax and regression checks
         run: |
           node --check assets/js/front.js
-          node --test tests/front-js.test.js
+          node --check assets/js/blocks.js
+          node --test tests/*.test.js
       - name: Build clean release ZIP and lint included PHP
         run: bash scripts/build-release.sh "${{ runner.temp }}/release-package"
       - name: Upload installable ZIP artifact
