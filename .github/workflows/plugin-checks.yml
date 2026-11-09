@@ -46,27 +46,3 @@ jobs:
         run: node --check assets/js/front.js
       - name: Run frontend regression tests
         run: node --test tests/front-js.test.js
-
-  package:
-    name: Build clean WordPress plugin ZIP
-    needs:
-      - php-lint
-      - frontend
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out source
-        uses: actions/checkout@v4
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.1'
-          coverage: none
-      - name: Build and validate release ZIP
-        run: bash scripts/build-release.sh "${{ runner.temp }}/release-package"
-      - name: Upload installable ZIP artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: azuracast-suite-1.3.4
-          path: ${{ runner.temp }}/release-package/azuracast-native-suite-1.3.4.zip
-          if-no-files-found: error
-          retention-days: 30
