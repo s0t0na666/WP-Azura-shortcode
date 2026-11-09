@@ -57,9 +57,10 @@ The next release should add useful WordPress-native workflows without replacing 
 ### Priority 2 — additional station data
 
 - [ ] Evaluate public AzuraCast data for current listener count and live/offline status.
-- [ ] Add optional listener-count and station-status components only after confirming the relevant public API fields and behavior against the target AzuraCast version.
+- [x] Add optional listener-count and broadcast-mode components using the existing Now Playing payload: `listeners.current` (fallback `listeners.total`) and the explicit boolean `live.is_live`. The component displays Live DJ/AutoDJ and does not claim server online/offline status.
 - [ ] Review current artwork handling and provide consistent fallbacks for missing, invalid or unavailable artwork.
 - [ ] Consider a compact upcoming-show component using the public schedule data; do not calculate or invent schedule entries in WordPress.
+- [x] Add Node.js regression tests for listener count and both Live DJ/AutoDJ states.
 
 ### Priority 2 — performance, accessibility and presentation
 
