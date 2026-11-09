@@ -72,11 +72,11 @@ final class AZNS_Shortcodes {
 
         $html = '<section id="' . esc_attr($id) . '" class="azns azns-' . esc_attr($type) . ' azns-' . esc_attr($station['theme']) . '" data-type="' . esc_attr($type) . '" data-limit="' . max(1, min(50, absint($attributes['limit']))) . '">';
         if ($type === 'next') {
-            $html .= '<div class="azns-next"></div>';
+            $html .= '<div class="azns-next" aria-live="polite" aria-atomic="true"></div>';
         } elseif (in_array($type, ['listeners', 'broadcast'], true)) {
-            $html .= '<div class="azns-indicator" aria-live="polite"></div>';
+            $html .= '<div class="azns-indicator" aria-live="polite" aria-atomic="true"></div>';
         } else {
-            $html .= '<div class="azns-current"></div>';
+            $html .= '<div class="azns-current" aria-live="polite" aria-atomic="true"></div>';
         }
         if ($type !== 'next') {
             $html .= '<small class="azns-status">Loading ' . esc_html($station['name']) . '…</small>';
