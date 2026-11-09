@@ -55,7 +55,7 @@ Two lightweight components use the fields already included in AzuraCast's Now Pl
 - `[azura_listeners station="your_station_shortcode"]` displays the current listener count from `listeners.current` (with `listeners.total` as a fallback).
 - `[azura_broadcast_mode station="your_station_shortcode"]` displays **Live DJ** with the streamer name when `live.is_live` is true, or **AutoDJ** when it is false. If AzuraCast does not return a boolean live flag, the component reports that broadcast mode is unavailable instead of guessing.
 
-Matching Gutenberg blocks are available as **AzuraCast Listener Count** and **AzuraCast Broadcast Mode**. Both use the existing Now Playing REST/WebSocket connection and do not add extra requests.
+Matching Gutenberg blocks are available as **AzuraCast Listener Count** and **AzuraCast Broadcast Mode**. Both use the existing Now Playing REST/WebSocket connection and do not add extra requests.\n\n## Artwork fallback — 1.4.0 development\n\nWhen artwork display is enabled, Now Playing and Playing Next show a consistent placeholder if AzuraCast does not provide a valid HTTP(S) artwork URL or the image cannot be loaded. The placeholder is removed once the image loads successfully and includes an accessible label for assistive technology.
 
 ## Configuration
 
