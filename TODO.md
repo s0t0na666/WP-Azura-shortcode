@@ -19,7 +19,7 @@
 
 The user confirmed that all functionality has been tested successfully. GitHub Actions separately passed PHP lint on PHP 8.1 and 8.5, JavaScript syntax checks, frontend regression tests and clean ZIP packaging. These are distinct forms of validation; the runtime integration testing was performed by the user.
 
-## Next release proposal — 1.4.0
+## Active development — 1.4.0
 
 The next release should add useful WordPress-native workflows without replacing AzuraCast's own player, queue, history or schedule logic.
 
@@ -59,6 +59,7 @@ The next release should add useful WordPress-native workflows without replacing 
 - [ ] Evaluate public AzuraCast data for current listener count and live/offline status.
 - [x] Add optional listener-count and broadcast-mode components using the existing Now Playing payload: `listeners.current` (fallback `listeners.total`) and the explicit boolean `live.is_live`. The component displays Live DJ/AutoDJ and does not claim server online/offline status.
 - [ ] Review current artwork handling and provide consistent fallbacks for missing, invalid or unavailable artwork.
+- [x] Add frontend tests for listener counts, Live DJ and AutoDJ states.
 - [ ] Consider a compact upcoming-show component using the public schedule data; do not calculate or invent schedule entries in WordPress.
 - [x] Add Node.js regression tests for listener count and both Live DJ/AutoDJ states.
 
@@ -79,11 +80,11 @@ The next release should add useful WordPress-native workflows without replacing 
 
 ## 1.4.0 release acceptance checklist
 
-- [ ] All feature work is merged into `development`; no unfinished feature is included in the release candidate.
+- [x] All currently implemented feature work is committed to `development`; remaining items are staging validation and release-readiness tasks. No changes have been merged into `main`.
 - [ ] PHP, JavaScript, unit, integration and WordPress Plugin Check workflows pass.
 - [ ] Test on a staging WordPress installation with the supported PHP versions and the target AzuraCast version.
 - [ ] Re-test every shortcode and block, multiple stations, settings save/update, desktop/tablet/mobile and Light/Dark themes.
-- [ ] Re-test online/offline state, empty queue, artwork fallback, WebSocket reconnect and browser back/forward navigation.
+- [ ] Re-test online/offline state, empty queue, artwork fallback, WebSocket reconnect and browser back/forward navigation, plus the new Listener Count and Broadcast Mode components.
 - [ ] Test fresh installation and upgrade from 1.3.4, including rollback/recovery notes.
 - [ ] Update plugin version, `readme.txt`, `CHANGELOG.md`, documentation and ZIP filename consistently.
 - [ ] Build and inspect the clean installable ZIP from the release tag.
