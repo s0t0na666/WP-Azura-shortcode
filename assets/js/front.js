@@ -166,6 +166,29 @@
                 if (!list.children.length) list.append(make('li', '', 'No recent tracks'));
             } else if (type === 'next') {
                 renderNextTrack(widget.querySelector('.azns-next'), data, config.art);
+            } else if (type === 'listeners') {
+                const target = widget.querySelector('.azns-indicator');
+                target.replaceChildren();
+                const rawCount = data.listeners?.current ?? data.listeners?.total;
+                const count = Number(rawCount);
+                if (Number.isFinite(count) && count >= 0) {
+                    target.append(make('strong', 'azns-indicator-value', `${Math.floor(count)} listening`));
+                } else {
+                    target.append(make('span', '', 'Listener count unavailable'));
+                }
+            } else if (type === 'broadcast') {
+                const target = widget.querySelector('.azns-indicator');
+                target.replaceChildren();
+                if (!data.live || typeof data.live.is_live !== 'boolean') {
+                    target.append(make('span', '', 'Broadcast mode unavailable'));
+                } else if (data.live.is_live) {
+                    const streamer = (typeof data.live.streamer_name === 'string' && data.live.streamer_name.trim())
+                        ? ` — ${data.live.streamer_name.trim()}`
+                        : '';
+                    target.append(make('strong', 'azns-indicator-value', `Live DJ${streamer}`));
+                } else {
+                    target.append(make('strong', 'azns-indicator-value', 'AutoDJ'));
+                }
             } else {
                 const target = widget.querySelector('.azns-current');
                 renderTrack(target, data.now_playing, config.art);
