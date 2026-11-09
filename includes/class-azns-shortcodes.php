@@ -6,7 +6,7 @@ final class AZNS_Shortcodes {
 
     public function __construct($stations, $api) {
         $this->stations = $stations;
-        foreach (['azura_player', 'azura_nowplaying', 'azura_next_track', 'azura_history', 'azura_podcasts', 'azura_schedule', 'azuracast_playing_next', 'azura_playing_next'] as $tag) {
+        foreach (['azura_player', 'azura_nowplaying', 'azura_next_track', 'azura_history', 'azura_podcasts', 'azura_schedule', 'azura_listeners', 'azura_broadcast_mode', 'azuracast_playing_next', 'azura_playing_next'] as $tag) {
             add_shortcode($tag, [$this, 'render']);
         }
     }
@@ -21,6 +21,8 @@ final class AZNS_Shortcodes {
             'azura_history' => 'history',
             'azura_podcasts' => 'podcasts',
             'azura_schedule' => 'schedule',
+            'azura_listeners' => 'listeners',
+            'azura_broadcast_mode' => 'broadcast',
             'azura_next_track', 'azuracast_playing_next', 'azura_playing_next' => 'next',
             default => 'nowplaying',
         };
@@ -71,6 +73,8 @@ final class AZNS_Shortcodes {
         $html = '<section id="' . esc_attr($id) . '" class="azns azns-' . esc_attr($type) . ' azns-' . esc_attr($station['theme']) . '" data-type="' . esc_attr($type) . '" data-limit="' . max(1, min(50, absint($attributes['limit']))) . '">';
         if ($type === 'next') {
             $html .= '<div class="azns-next"></div>';
+        } elseif (in_array($type, ['listeners', 'broadcast'], true)) {
+            $html .= '<div class="azns-indicator" aria-live="polite"></div>';
         } else {
             $html .= '<div class="azns-current"></div>';
         }
