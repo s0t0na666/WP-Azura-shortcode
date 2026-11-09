@@ -50,3 +50,29 @@ jobs:
           node --check assets/js/blocks.js
       - name: Run frontend regression tests
         run: node --test tests/*.test.js
+
+  wordpress-plugin-check:
+    name: WordPress Plugin Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          coverage: none
+      - name: Build clean plugin archive
+        run: |
+          bash scripts/build-release.sh "${{ runner.temp }}/release-package"
+          mkdir -p "${{ runner.temp }}/plugin-check"
+          unzip -q "${{ runner.temp }}/release-package/azuracast-native-suite-1.4.0.zip" -d "${{ runner.temp }}/plugin-check"
+      - name: Run WordPress Plugin Check
+        uses: wordpress/plugin-check-action@v1
+        with:
+          build-dir: ${{ runner.temp }}/plugin-check/azuracast-native-suite
+          categories: |
+            general
+            security
+            performance
+            accessibility
