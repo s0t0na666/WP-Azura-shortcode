@@ -30,6 +30,7 @@ jobs:
           node --check assets/js/front.js
           node --check assets/js/blocks.js
           node --test tests/*.test.js
+          php tests/admin-connection.test.php
       - name: Build clean release ZIP and lint included PHP
         run: bash scripts/build-release.sh "${{ runner.temp }}/release-package"
       - name: Upload installable ZIP artifact
