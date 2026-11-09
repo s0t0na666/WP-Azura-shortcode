@@ -22,7 +22,7 @@ The source has been reviewed against the AzuraCast 0.24.0 OpenAPI schema and pub
 
 ## Gutenberg blocks — 1.4.0 development
 
-The `development` branch now registers six dynamic Gutenberg blocks:
+The `development` branch now registers eight dynamic Gutenberg blocks:
 
 - AzuraCast Player
 - AzuraCast Now Playing
@@ -30,6 +30,8 @@ The `development` branch now registers six dynamic Gutenberg blocks:
 - AzuraCast History (with a configurable entry limit)
 - AzuraCast Podcasts
 - AzuraCast Schedule
+- AzuraCast Listener Count
+- AzuraCast Broadcast Mode (Live DJ / AutoDJ)
 
 Each block can use the default station or select a configured station in the block sidebar. Blocks reuse the existing shortcode renderer on the server, so the frontend output and AzuraCast data flow remain shared with the shortcode implementation. This work is under development and is not part of the published 1.3.4 release.
 
@@ -44,6 +46,15 @@ Each saved station has a manual **Test connection** action. The latest result is
 The **Logs & Diagnostics** screen can download a JSON report for support. It includes plugin, WordPress and PHP versions, configured station shortcodes, display theme/artwork settings, connection-check timestamps/statuses, and sanitized recent log entries. It deliberately omits station server URLs and custom CSS. Complete URLs are removed from exported log messages, and credential/token fields and values are redacted. Download requires a WordPress administrator and a valid nonce.
 
 The administration form also reports skipped invalid shortcode rows, duplicate shortcodes, invalid server URLs and correction of an invalid default-station selection.
+
+## Additional station indicators — 1.4.0 development
+
+Two lightweight components use the fields already included in AzuraCast's Now Playing JSON/WebSocket payload:
+
+- `[azura_listeners station="your_station_shortcode"]` displays the current listener count from `listeners.current` (with `listeners.total` as a fallback).
+- `[azura_broadcast_mode station="your_station_shortcode"]` displays **Live DJ** with the streamer name when `live.is_live` is true, or **AutoDJ** when it is false. If AzuraCast does not return a boolean live flag, the component reports that broadcast mode is unavailable instead of guessing.
+
+Matching Gutenberg blocks are available as **AzuraCast Listener Count** and **AzuraCast Broadcast Mode**. Both use the existing Now Playing REST/WebSocket connection and do not add extra requests.
 
 ## Configuration
 
