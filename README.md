@@ -19,7 +19,7 @@ Automated checks are configured for pushes and pull requests targeting the `deve
 - JavaScript syntax checking and Node.js regression tests for all eight Gutenberg block registrations, initial Now Playing JSON, real-time WebSocket updates, an empty Playing Next queue, stale-response ordering, listener counts and Live DJ/AutoDJ states.
 - The official WordPress Plugin Check action runs against a clean installable archive, covering general, security, performance and accessibility checks.
 
-The source has been reviewed against the AzuraCast 0.24.0 OpenAPI schema and public route definitions. Source review and CI syntax/unit checks do **not** replace runtime integration tests against the target AzuraCast instance and a staging WordPress site. See [TODO.md](TODO.md) for the remaining checks.
+The source has been reviewed against the AzuraCast 0.24.0 OpenAPI schema and public route definitions. CI includes PHP CLI regression tests for station settings and URL validation, API proxy behavior, shortcode output/accessibility attributes, admin connection checks and diagnostics privacy. The official WordPress Plugin Check reports no errors for the clean plugin archive. Source review and CI tests do **not** replace runtime integration tests against the target AzuraCast instance and a staging WordPress site. See [TODO.md](TODO.md) for the remaining checks.
 
 ## Gutenberg blocks — 1.4.0 development
 
@@ -59,7 +59,7 @@ Matching Gutenberg blocks are available as **AzuraCast Listener Count** and **Az
 
 ## Artwork fallback — 1.4.0 development
 
-When artwork display is enabled, Now Playing and Playing Next show a consistent placeholder if AzuraCast does not provide a valid HTTP(S) artwork URL or the image cannot be loaded. The placeholder is removed once the image loads successfully and includes an accessible label for assistive technology.
+When artwork display is enabled, Now Playing and Playing Next show a consistent placeholder if AzuraCast does not provide a valid HTTP(S) artwork URL or the image cannot be loaded. The placeholder is removed once the image loads successfully and includes an accessible label for assistive technology. Now Playing, Playing Next and the listener/broadcast indicators also use polite, atomic live regions so screen readers can announce changed values.
 
 ## Configuration
 
