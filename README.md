@@ -33,6 +33,10 @@ The `development` branch now registers six dynamic Gutenberg blocks:
 
 Each block can use the default station or select a configured station in the block sidebar. Blocks reuse the existing shortcode renderer on the server, so the frontend output and AzuraCast data flow remain shared with the shortcode implementation. This work is under development and is not part of the published 1.3.4 release.
 
+## WordPress administration — connection test
+
+The station settings screen includes an administrator-only **Test connection** action for each saved station. It requests the configured station's public Now Playing endpoint from the WordPress server, validates the returned AzuraCast station payload, and reports the HTTP result and station name. The request is protected by a WordPress nonce and the `manage_options` capability; it does not expose the server URL or any credentials to the public frontend. New or changed station settings must be saved before they can be tested.
+
 ## Configuration
 
 All stations are managed in the WordPress `azns_settings` option through the plugin's administration screen. Station shortcodes and server URLs are not hardcoded into the plugin source.
