@@ -37,6 +37,14 @@ Each block can use the default station or select a configured station in the blo
 
 The station settings screen includes an administrator-only **Test connection** action for each saved station. It requests the configured station's public Now Playing endpoint from the WordPress server, validates the returned AzuraCast station payload, and reports the HTTP result and station name. The request is protected by a WordPress nonce and the `manage_options` capability; it does not expose the server URL or any credentials to the public frontend. New or changed station settings must be saved before they can be tested.
 
+## Station health and diagnostics — 1.4.0 development
+
+Each saved station has a manual **Test connection** action. The latest result is retained in the `azns_station_health` option and shown beside the station settings, including the last check time and the last successful check. This is an on-demand check, not continuous background polling. Health history for stations removed from settings is discarded when the configuration is saved.
+
+The **Logs & Diagnostics** screen can download a JSON report for support. It includes plugin, WordPress and PHP versions, configured station shortcodes, display theme/artwork settings, connection-check timestamps/statuses, and sanitized recent log entries. It deliberately omits station server URLs and custom CSS. Complete URLs are removed from exported log messages, and credential/token fields and values are redacted. Download requires a WordPress administrator and a valid nonce.
+
+The administration form also reports skipped invalid shortcode rows, duplicate shortcodes, invalid server URLs and correction of an invalid default-station selection.
+
 ## Configuration
 
 All stations are managed in the WordPress `azns_settings` option through the plugin's administration screen. Station shortcodes and server URLs are not hardcoded into the plugin source.
