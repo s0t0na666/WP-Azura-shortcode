@@ -117,7 +117,7 @@ azns_shortcode_assert(
 );
 azns_shortcode_assert(strpos($player, 'loading="lazy"') !== false, 'AzuraCast public-page embeds must load lazily.');
 
-$missing = $shortcodes->render([], '', 'azura_next_track');
+$missing = $shortcodes->render(['station' => 'unknown_station'], '', 'azura_next_track');
 azns_shortcode_assert($missing === '', 'A shortcode with an unknown station must not render frontend error details.');
 
 echo "Shortcode rendering and accessibility tests passed.\n";
