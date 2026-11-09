@@ -26,12 +26,12 @@ The next release should add useful WordPress-native workflows without replacing 
 ### Priority 0 — development and release workflow
 
 - [ ] Keep all new feature work on `development`; do not develop directly on `main`.
-- [ ] Run the full CI workflow on pull requests targeting both `development` and `main` (the current plugin-check workflow only targets `development`).
+- [x] Run the full CI workflow on pull requests targeting both `development` and `main`; editor bundle syntax and all Node regression tests are included.
 - [ ] Add automated PHP unit tests for station configuration, URL validation, REST proxy allow/deny behavior and malformed API responses.
 - [ ] Add mocked AzuraCast fixtures for live, offline, empty-queue, missing-artwork and WebSocket reconnect scenarios.
 - [ ] Add a WordPress Plugin Check / coding-standards job and resolve actionable findings.
 - [ ] Verify the supported WordPress core range, then update the `Tested up to` header only for versions actually tested.
-- [ ] Keep the release ZIP reproducible and verify that it excludes tests, CI files, logs, development notes and other non-installable files.
+- [x] Keep the release ZIP reproducible and verify that it excludes tests, CI files, logs, development notes and other non-installable files; include and validate the new block registration/editor files.
 
 ### Priority 1 — WordPress admin experience
 
@@ -42,10 +42,11 @@ The next release should add useful WordPress-native workflows without replacing 
 
 ### Priority 1 — native Gutenberg blocks
 
-- [ ] Add dynamic Gutenberg blocks for Player, Now Playing, Playing Next, History, Podcasts and Schedule.
-- [ ] Provide a station selector and the relevant display options in the block sidebar.
-- [ ] Reuse the existing shortcode/rendering implementation so blocks and shortcodes cannot drift apart.
-- [ ] Keep existing shortcodes fully backward-compatible; block support must be additive.
+- [x] Register dynamic Gutenberg blocks for Player, Now Playing, Playing Next, History, Podcasts and Schedule on `development`.
+- [x] Provide a default/configured station selector and a History entry-limit control in the block sidebar.
+- [x] Reuse the existing shortcode rendering implementation for dynamic block output.
+- [x] Keep existing shortcodes fully backward-compatible; block support is additive.
+- [ ] Verify block insertion, sidebar controls, saved attributes and frontend rendering on the staging WordPress site (runtime editor testing is still required).
 
 ### Priority 2 — additional station data
 
