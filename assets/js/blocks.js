@@ -61,6 +61,20 @@
             icon: 'calendar',
             preview: 'The official AzuraCast schedule is rendered on the published page.',
         },
+        {
+            name: 'azns/listeners',
+            title: 'AzuraCast Listener Count',
+            description: 'Show the current listener count reported by AzuraCast.',
+            icon: 'groups',
+            preview: 'The current listener count is rendered on the published page.',
+        },
+        {
+            name: 'azns/broadcast-mode',
+            title: 'AzuraCast Broadcast Mode',
+            description: 'Show whether the station is using a live DJ or AutoDJ.',
+            icon: 'radio',
+            preview: 'Live DJ or AutoDJ mode is rendered on the published page.',
+        },
     ];
 
     definitions.forEach(definition => {
