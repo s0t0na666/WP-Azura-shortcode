@@ -37,10 +37,12 @@ function createHarness() {
     return registered;
 }
 
-test('registers all six dynamic AzuraCast blocks', () => {
+test('registers all eight dynamic AzuraCast blocks', () => {
     const registered = createHarness();
     assert.deepEqual(Object.keys(registered).sort(), [
+        'azns/broadcast-mode',
         'azns/history',
+        'azns/listeners',
         'azns/now-playing',
         'azns/player',
         'azns/playing-next',
