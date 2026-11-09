@@ -22,27 +22,59 @@ final class AZNS_Logger {
         $web_config_path = $dir . '/web.config';
         if (@file_get_contents($web_config_path) !== $web_config) @file_put_contents($web_config_path, $web_config, LOCK_EX);
     }
+    private static function redact_string($value) {
+        $value = (string) $value;
+        $value = preg_replace('~(https?://)[^/\\s@]+:[^/\\s@]+@~i', '$1[redacted]@', $value);
+        $value = preg_replace('~([?&](?:api[_-]?key|access[_-]?token|authorization|password|secret|signature|token)=)[^&\\s#]+~i', '$1[redacted]', $value);
+        $value = preg_replace('/\\b(Bearer)\\s+[A-Za-z0-9._~+\\/-]+=*/i', '$1 [redacted]', $value);
+        return sanitize_text_field($value);
+    }
+
     private static function clean_context($context) {
         if (!is_array($context)) return [];
         $clean = [];
         foreach ($context as $key => $value) {
             $key_string = (string) $key;
-            if (preg_match('/(api[_-]?key|authorization|password|secret|token)/i', $key_string)) {
+            if (preg_match('/(api[_-]?key|authorization|password|secret|token|cookie|private[_-]?key)/i', $key_string)) {
                 $clean[$key_string] = '[redacted]';
             } elseif (is_array($value)) {
                 $clean[$key_string] = self::clean_context($value);
+            } elseif (is_string($value)) {
+                $clean[$key_string] = self::redact_string($value);
             } elseif (is_scalar($value)) {
-                $clean[$key_string] = is_string($value) ? sanitize_text_field($value) : $value;
+                $clean[$key_string] = $value;
             }
         }
         return $clean;
     }
+
+    /**
+     * Return a sanitized copy of recent log rows for administrator diagnostics.
+     * Raw log file contents and filesystem paths are never exported.
+     */
+    public static function export_rows() {
+        $tail = self::tail();
+        if ($tail === '') return [];
+
+        $rows = [];
+        foreach (preg_split('/\\r?\\n/', $tail) as $line) {
+            if (!is_string($line) || trim($line) === '') continue;
+            $decoded = json_decode($line, true);
+            if (is_array($decoded)) {
+                $rows[] = self::clean_context($decoded);
+            } else {
+                $rows[] = ['message' => self::redact_string($line)];
+            }
+        }
+        return $rows;
+    }
+
     public static function log($level, $message, $context = []) {
         self::init();
         $dir = self::dir();
         if (!is_dir($dir) || !is_writable($dir)) return;
         $row = ['time' => gmdate('c'), 'level' => sanitize_key($level),
-            'message' => sanitize_text_field($message), 'context' => self::clean_context($context)];
+            'message' => self::redact_string($message), 'context' => self::clean_context($context)];
         $encoded = wp_json_encode($row);
         if (is_string($encoded)) @file_put_contents($dir . '/azuracast.log', $encoded . PHP_EOL, FILE_APPEND | LOCK_EX);
     }
