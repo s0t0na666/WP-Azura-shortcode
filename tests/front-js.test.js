@@ -15,12 +15,27 @@ class FakeElement {
     }
 
     append(...nodes) {
-        this.children.push(...nodes);
+        nodes.forEach(node => {
+            node.parentNode = this;
+            this.children.push(node);
+        });
     }
 
     replaceChildren(...nodes) {
+        this.children.forEach(child => { child.parentNode = null; });
         this._text = '';
-        this.children = [...nodes];
+        this.children = [];
+        this.append(...nodes);
+    }
+
+    setAttribute(name, value) {
+        this[name] = value;
+    }
+
+    remove() {
+        if (!this.parentNode) return;
+        this.parentNode.children = this.parentNode.children.filter(child => child !== this);
+        this.parentNode = null;
     }
 
     set textContent(value) {
@@ -40,7 +55,7 @@ function response(data) {
     };
 }
 
-function createHarness(fetchImpl, type = 'next') {
+function createHarness(fetchImpl, type = 'next', art = false) {
     const sockets = [];
     const target = new FakeElement('div');
     const widget = {
@@ -64,7 +79,7 @@ function createHarness(fetchImpl, type = 'next') {
                 server: 'https://radio.example.test/radio-proxy',
                 shortcode: 'test_station',
                 rest: '/wp-json/azns/v1/station/test_station/',
-                art: false,
+                art,
             },
         },
         addEventListener() {},
@@ -195,4 +210,44 @@ test('renders Live DJ and AutoDJ from the authoritative live flag', async () => 
     }), 'broadcast');
     await flushPromises();
     assert.match(autodj.target.textContent, /AutoDJ/);
+});
+
+test('provides an accessible artwork fallback for missing, invalid and failed images', async () => {
+    const missing = createHarness(async () => response({
+        playing_next: { song: { artist: 'Test Artist', title: 'Missing Art' } },
+    }), 'next', true);
+    await flushPromises();
+    assert.match(missing.target.textContent, /No artwork/);
+    assert.equal(missing.target.children.some(child => child.tagName === 'img'), false);
+
+    const invalid = createHarness(async () => response({
+        playing_next: { song: { artist: 'Test Artist', title: 'Invalid Art', art: 'data:image/png;base64,abcd' } },
+    }), 'next', true);
+    await flushPromises();
+    assert.match(invalid.target.textContent, /No artwork/);
+    assert.equal(invalid.target.children.some(child => child.tagName === 'img'), false);
+
+    const failed = createHarness(async () => response(nextData('Image Fails')), 'next', true);
+    await flushPromises();
+    const image = failed.target.children.find(child => child.tagName === 'img');
+    const fallback = failed.target.children.find(child => child.className === 'azns-art-placeholder');
+    assert.ok(image, 'A valid artwork URL should create an image element.');
+    assert.ok(fallback, 'The fallback should remain visible while the image loads.');
+    assert.equal(fallback.role, 'img');
+    assert.equal(fallback['aria-label'], 'Album artwork unavailable');
+    image.onerror();
+    assert.equal(failed.target.children.includes(image), false);
+    assert.equal(failed.target.children.includes(fallback), true);
+});
+
+test('removes the artwork fallback after a successful image load', async () => {
+    const harness = createHarness(async () => response(nextData('Image Loads')), 'next', true);
+    await flushPromises();
+    const image = harness.target.children.find(child => child.tagName === 'img');
+    const fallback = harness.target.children.find(child => child.className === 'azns-art-placeholder');
+    assert.ok(image);
+    assert.ok(fallback);
+    image.onload();
+    assert.equal(harness.target.children.includes(fallback), false);
+    assert.equal(harness.target.children.includes(image), true);
 });
