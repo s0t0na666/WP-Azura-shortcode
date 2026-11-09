@@ -8,7 +8,9 @@
 - Added form feedback for invalid/duplicate station rows and invalid default-station selection.
 - Added a sanitized diagnostics JSON export that omits server URLs and custom CSS and redacts secrets/URLs in log entries.
 - Added listener-count and Live DJ/AutoDJ components using the existing Now Playing JSON/WebSocket feed.
-- Expanded PHP and JavaScript regression coverage and the clean release-package checks.
+- Added PHP CLI regression coverage for station configuration, URL validation, API resource allow-listing, endpoint construction, cache TTLs, malformed responses and REST proxy status handling.
+- Added the official WordPress Plugin Check workflow for clean release archives (general, security, performance and accessibility categories).
+- Tightened station URL validation to reject numeric-only hosts.
 
 > This section describes development work on the development branch; it is not a published release. Live WordPress/AzuraCast integration testing remains part of the 1.4.0 release acceptance checklist.
 
