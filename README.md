@@ -4,7 +4,7 @@ WordPress plugin for embedding AzuraCast public pages and displaying radio compo
 
 ## Development status
 
-Current source version: **1.3.4**.
+Current development source version: **1.4.0**.
 
 The plugin uses AzuraCast public-page embeds for the full Player, History, Podcasts, and Schedule interfaces. Standalone Now Playing/Playing Next components consume AzuraCast's own Now Playing data instead of creating or estimating metadata in WordPress.
 
