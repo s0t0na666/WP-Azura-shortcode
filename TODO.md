@@ -37,10 +37,12 @@ The next release should add useful WordPress-native workflows without replacing 
 ### Priority 1 — WordPress admin experience
 
 - [x] Add an administrator-only per-station **Test connection** action for saved stations; it checks the public Now Playing endpoint, validates the returned AzuraCast payload and reports the HTTP result/station name.
-- [ ] Show a compact station health summary in settings: reachable/unreachable, station identity and last successful check.
-- [ ] Improve validation feedback for duplicate station shortcodes, invalid URLs, missing station data and an empty default-station selection.
-- [ ] Provide a safe diagnostics export that redacts credentials and private values; never expose secrets in browser JavaScript or public REST responses.
-- [ ] Test the connection-check AJAX action on staging for success, timeout, HTTP error, malformed JSON, invalid nonce and insufficient permissions.
+- [x] Show a compact station health summary in settings: reachable/unreachable, station identity, last check time and last successful check; results are stored per configured station and are updated only by manual checks.
+- [x] Improve validation feedback for duplicate station shortcodes, invalid URLs, empty/invalid shortcodes and an invalid default-station selection.
+- [x] Provide an administrator-only JSON diagnostics export with environment details, station health and sanitized logs; station server URLs and custom CSS are omitted, complete URLs are removed from exported logs, and credential/token values are redacted.
+- [x] Add CLI regression coverage for permission/nonce checks, success, unknown station, HTTP/network errors, invalid payload and preservation of the last successful health timestamp.
+- [x] Add CLI regression coverage confirming diagnostic exports omit station URLs/custom CSS and redact URL credentials, tokens and sensitive log fields.
+- [ ] Verify the health status display and diagnostics download against the staging WordPress installation.
 
 ### Priority 1 — native Gutenberg blocks
 
