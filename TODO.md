@@ -35,10 +35,11 @@ The next release should add useful WordPress-native workflows without replacing 
 
 ### Priority 1 — WordPress admin experience
 
-- [ ] Add a per-station **Test connection** action that checks the configured AzuraCast URL and public station endpoint and returns a useful success/error explanation.
+- [x] Add an administrator-only per-station **Test connection** action for saved stations; it checks the public Now Playing endpoint, validates the returned AzuraCast payload and reports the HTTP result/station name.
 - [ ] Show a compact station health summary in settings: reachable/unreachable, station identity and last successful check.
 - [ ] Improve validation feedback for duplicate station shortcodes, invalid URLs, missing station data and an empty default-station selection.
 - [ ] Provide a safe diagnostics export that redacts credentials and private values; never expose secrets in browser JavaScript or public REST responses.
+- [ ] Test the connection-check AJAX action on staging for success, timeout, HTTP error, malformed JSON, invalid nonce and insufficient permissions.
 
 ### Priority 1 — native Gutenberg blocks
 
@@ -47,6 +48,7 @@ The next release should add useful WordPress-native workflows without replacing 
 - [x] Reuse the existing shortcode rendering implementation for dynamic block output.
 - [x] Keep existing shortcodes fully backward-compatible; block support is additive.
 - [ ] Verify block insertion, sidebar controls, saved attributes and frontend rendering on the staging WordPress site (runtime editor testing is still required).
+- [ ] Verify the station connection test in the WordPress admin against the configured AzuraCast station.
 
 ### Priority 2 — additional station data
 
