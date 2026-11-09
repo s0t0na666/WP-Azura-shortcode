@@ -60,12 +60,13 @@ function createHarness(fetchImpl, type = 'next', art = false) {
     const timers = [];
     let nextTimerId = 0;
     const target = new FakeElement('div');
+    const status = new FakeElement('small');
     const widget = {
         id: 'azns-test',
         dataset: { type, limit: '10' },
         querySelector(selector) {
             if (selector === '.azns-next' || selector === '.azns-indicator' || selector === '.azns-current') return target;
-            if (selector === '.azns-status') return null;
+            if (selector === '.azns-status') return status;
             return null;
         },
     };
@@ -120,7 +121,7 @@ function createHarness(fetchImpl, type = 'next', art = false) {
     };
 
     vm.runInNewContext(source, sandbox, { filename: 'front.js' });
-    return { target, sockets, widget, timers };
+    return { target, status, sockets, widget, timers };
 }
 
 function nextData(title, artist = 'Test Artist') {
@@ -283,4 +284,16 @@ test('refreshes the Now Playing snapshot and reconnects after the WebSocket clos
     assert.equal(fetchCount, 2, 'The REST snapshot should refresh during reconnection.');
     assert.equal(harness.sockets.length, 2, 'A new WebSocket connection should be created.');
     assert.match(harness.target.textContent, /Snapshot 2/);
+});
+
+test('shows an unavailable status when the AzuraCast API cannot be reached', async () => {
+    const harness = createHarness(async () => ({
+        ok: false,
+        status: 503,
+        json: async () => ({ error: 'Service unavailable' }),
+    }));
+    await flushPromises();
+
+    assert.equal(harness.status.textContent, 'Unable to load nowplaying');
+    assert.equal(harness.status.hidden, false);
 });
