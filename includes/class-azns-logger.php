@@ -24,7 +24,8 @@ final class AZNS_Logger {
     }
     private static function redact_string($value) {
         $value = (string) $value;
-        $value = preg_replace('~(https?://)[^/\\s@]+:[^/\\s@]+@~i', '$1[redacted]@', $value);
+        // Remove complete URLs because even a hostname or path can identify a private station.
+        $value = preg_replace('~https?://[^[:space:]<>]+~i', '[url omitted]', $value);
         $value = preg_replace('~([?&](?:api[_-]?key|access[_-]?token|authorization|password|secret|signature|token)=)[^&\\s#]+~i', '$1[redacted]', $value);
         $value = preg_replace('/\\b(Bearer)\\s+[A-Za-z0-9._~+\\/-]+=*/i', '$1 [redacted]', $value);
         return sanitize_text_field($value);
