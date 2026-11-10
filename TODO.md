@@ -46,11 +46,11 @@ The next release should add useful WordPress-native workflows without replacing 
 
 ### Priority 1 — native Gutenberg blocks
 
-- [x] Register dynamic Gutenberg blocks for Player, Now Playing, Playing Next, History, Podcasts, Schedule, Listener Count and Broadcast Mode on `development`.
+- [x] Register dynamic Gutenberg blocks for Player, Now Playing, Playing Next, History, Podcasts, Schedule, Upcoming Show, Listener Count and Broadcast Mode on `development`.
 - [x] Provide a default/configured station selector and a History entry-limit control in the block sidebar; the native History block renderer now applies the selected limit while the existing History shortcode remains unchanged.
 - [x] Reuse the existing shortcode rendering implementation for dynamic block output.
 - [x] Keep existing shortcodes fully backward-compatible; block support is additive.
-- [x] Add Node.js editor tests covering registration of all eight blocks and the History limit control.
+- [x] Add Node.js editor tests covering registration of all nine blocks and the History limit control.
 - [x] Add PHP CLI tests for dynamic block registration, editor configuration, server-render callbacks, station sanitization and History limit bounds.
 - [x] Keep the legacy History shortcode as the official AzuraCast iframe and render Gutenberg History natively from `song_history` so its display limit has an effect.
 - [ ] Verify block insertion, sidebar controls, saved attributes and frontend rendering on the staging WordPress site (runtime editor testing is still required).

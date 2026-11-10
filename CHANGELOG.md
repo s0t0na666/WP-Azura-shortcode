@@ -2,7 +2,7 @@
 
 ## 1.4.0 — WordPress-native components and administration (development)
 
-- Added eight dynamic Gutenberg blocks for Player, Now Playing, Playing Next, History, Podcasts, Schedule, Listener Count and Broadcast Mode.
+- Added nine dynamic Gutenberg blocks for Player, Now Playing, Playing Next, History, Podcasts, Schedule, Upcoming Show, Listener Count and Broadcast Mode.
 - Made the Gutenberg History limit functional with a native `song_history` list while preserving the existing History shortcode's official AzuraCast iframe behavior.
 - Added a compact Upcoming Show shortcode and Gutenberg block backed by AzuraCast's public Schedule endpoint; it displays the first future entry returned by AzuraCast, or the current entry when no future entry is available.
 - Added an administrator-only station connection test with nonce and capability checks.
