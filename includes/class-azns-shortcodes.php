@@ -6,13 +6,13 @@ final class AZNS_Shortcodes {
 
     public function __construct($stations, $api) {
         $this->stations = $stations;
-        foreach (['azura_player', 'azura_nowplaying', 'azura_next_track', 'azura_history', 'azura_podcasts', 'azura_schedule', 'azuracast_playing_next', 'azura_playing_next'] as $tag) {
+        foreach (['azura_player', 'azura_nowplaying', 'azura_next_track', 'azura_history', 'azura_podcasts', 'azura_schedule', 'azura_upcoming_show', 'azura_listeners', 'azura_broadcast_mode', 'azuracast_playing_next', 'azura_playing_next'] as $tag) {
             add_shortcode($tag, [$this, 'render']);
         }
     }
 
     public function render($attributes, $content = '', $tag = '') {
-        $attributes = shortcode_atts(['station' => '', 'limit' => 10], (array) $attributes, $tag);
+        $attributes = shortcode_atts(['station' => '', 'limit' => 10, 'native' => false], (array) $attributes, $tag);
         $station = $this->stations->get($attributes['station']);
         if (!$station) { return current_user_can('manage_options') ? '<p>Configure an AzuraCast station first.</p>' : ''; }
 
@@ -21,6 +21,9 @@ final class AZNS_Shortcodes {
             'azura_history' => 'history',
             'azura_podcasts' => 'podcasts',
             'azura_schedule' => 'schedule',
+            'azura_upcoming_show' => 'upcoming',
+            'azura_listeners' => 'listeners',
+            'azura_broadcast_mode' => 'broadcast',
             'azura_next_track', 'azuracast_playing_next', 'azura_playing_next' => 'next',
             default => 'nowplaying',
         };
@@ -29,7 +32,9 @@ final class AZNS_Shortcodes {
         $id = 'azns-' . (++$counter) . '-' . wp_generate_password(4, false, false);
         wp_enqueue_style('azns');
 
-        if (in_array($type, ['player', 'history', 'podcasts', 'schedule'], true)) {
+        $native_history = ($type === 'history' && in_array($attributes['native'], [true, 1, '1', 'true'], true));
+
+        if (in_array($type, ['player', 'history', 'podcasts', 'schedule'], true) && !$native_history) {
             $public_base = trailingslashit($station['url']) . 'public/' . rawurlencode($station['shortcode']);
             $heights = [
                 'player' => 150,
@@ -69,10 +74,16 @@ final class AZNS_Shortcodes {
         wp_add_inline_script('azns', 'window.AZNS=window.AZNS||{};window.AZNS[' . wp_json_encode($id) . ']=' . wp_json_encode($config) . ';', 'before');
 
         $html = '<section id="' . esc_attr($id) . '" class="azns azns-' . esc_attr($type) . ' azns-' . esc_attr($station['theme']) . '" data-type="' . esc_attr($type) . '" data-limit="' . max(1, min(50, absint($attributes['limit']))) . '">';
-        if ($type === 'next') {
-            $html .= '<div class="azns-next"></div>';
+        if ($type === 'history') {
+            $html .= '<ol class="azns-history" aria-live="polite" aria-atomic="true"></ol>';
+        } elseif ($type === 'upcoming') {
+            $html .= '<div class="azns-upcoming" aria-live="polite" aria-atomic="true"></div>';
+        } elseif ($type === 'next') {
+            $html .= '<div class="azns-next" aria-live="polite" aria-atomic="true"></div>';
+        } elseif (in_array($type, ['listeners', 'broadcast'], true)) {
+            $html .= '<div class="azns-indicator" aria-live="polite" aria-atomic="true"></div>';
         } else {
-            $html .= '<div class="azns-current"></div>';
+            $html .= '<div class="azns-current" aria-live="polite" aria-atomic="true"></div>';
         }
         if ($type !== 'next') {
             $html .= '<small class="azns-status">Loading ' . esc_html($station['name']) . '…</small>';

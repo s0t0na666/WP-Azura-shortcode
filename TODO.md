@@ -19,47 +19,58 @@
 
 The user confirmed that all functionality has been tested successfully. GitHub Actions separately passed PHP lint on PHP 8.1 and 8.5, JavaScript syntax checks, frontend regression tests and clean ZIP packaging. These are distinct forms of validation; the runtime integration testing was performed by the user.
 
-## Next release proposal — 1.4.0
+## Active development — 1.4.0
 
 The next release should add useful WordPress-native workflows without replacing AzuraCast's own player, queue, history or schedule logic.
 
 ### Priority 0 — development and release workflow
 
-- [ ] Keep all new feature work on `development`; do not develop directly on `main`.
-- [ ] Run the full CI workflow on pull requests targeting both `development` and `main` (the current plugin-check workflow only targets `development`).
-- [ ] Add automated PHP unit tests for station configuration, URL validation, REST proxy allow/deny behavior and malformed API responses.
-- [ ] Add mocked AzuraCast fixtures for live, offline, empty-queue, missing-artwork and WebSocket reconnect scenarios.
-- [ ] Add a WordPress Plugin Check / coding-standards job and resolve actionable findings.
+- [x] Keep all new feature work on `development`; do not develop directly on `main`.
+- [x] Run the full CI workflow on pull requests targeting both `development` and `main`; editor bundle syntax and all Node regression tests are included.
+- [x] Add PHP CLI regression tests for station configuration, URL validation, REST resource allow-listing, endpoint construction, cache TTLs, malformed API responses and REST proxy status handling.
+- [x] Add CLI regression tests for the administrator-only station connection action (permission, nonce, unknown station, success, upstream HTTP error, malformed payload and network failure).
+- [x] Add mocked AzuraCast payload scenarios for live DJ/AutoDJ, API-unavailable state, empty queue, missing/invalid/failed artwork and WebSocket reconnect with snapshot refresh.
+- [x] Add the official WordPress Plugin Check job; the clean plugin archive passed the general, security, performance and accessibility categories.
 - [ ] Verify the supported WordPress core range, then update the `Tested up to` header only for versions actually tested.
-- [ ] Keep the release ZIP reproducible and verify that it excludes tests, CI files, logs, development notes and other non-installable files.
+- [x] Keep the release ZIP reproducible and verify that it excludes tests, CI files, logs, development notes and other non-installable files; include and validate the new block registration/editor files.
 
 ### Priority 1 — WordPress admin experience
 
-- [ ] Add a per-station **Test connection** action that checks the configured AzuraCast URL and public station endpoint and returns a useful success/error explanation.
-- [ ] Show a compact station health summary in settings: reachable/unreachable, station identity and last successful check.
-- [ ] Improve validation feedback for duplicate station shortcodes, invalid URLs, missing station data and an empty default-station selection.
-- [ ] Provide a safe diagnostics export that redacts credentials and private values; never expose secrets in browser JavaScript or public REST responses.
+- [x] Add an administrator-only per-station **Test connection** action for saved stations; it checks the public Now Playing endpoint, validates the returned AzuraCast payload and reports the HTTP result/station name.
+- [x] Show a compact station health summary in settings: reachable/unreachable, station identity, last check time and last successful check; results are stored per configured station and are updated only by manual checks.
+- [x] Improve validation feedback for duplicate station shortcodes, invalid URLs, empty/invalid shortcodes and an invalid default-station selection.
+- [x] Provide an administrator-only JSON diagnostics export with environment details, station health and sanitized logs; station server URLs and custom CSS are omitted, complete URLs are removed from exported logs, and credential/token values are redacted.
+- [x] Add CLI regression coverage for permission/nonce checks, success, unknown station, HTTP/network errors, invalid payload and preservation of the last successful health timestamp.
+- [x] Add CLI regression coverage confirming diagnostic exports omit station URLs/custom CSS and redact URL credentials, tokens and sensitive log fields.
+- [ ] Verify the health status display and diagnostics download against the staging WordPress installation.
 
 ### Priority 1 — native Gutenberg blocks
 
-- [ ] Add dynamic Gutenberg blocks for Player, Now Playing, Playing Next, History, Podcasts and Schedule.
-- [ ] Provide a station selector and the relevant display options in the block sidebar.
-- [ ] Reuse the existing shortcode/rendering implementation so blocks and shortcodes cannot drift apart.
-- [ ] Keep existing shortcodes fully backward-compatible; block support must be additive.
+- [x] Register dynamic Gutenberg blocks for Player, Now Playing, Playing Next, History, Podcasts, Schedule, Upcoming Show, Listener Count and Broadcast Mode on `development`.
+- [x] Provide a default/configured station selector and a History entry-limit control in the block sidebar; the native History block renderer now applies the selected limit while the existing History shortcode remains unchanged.
+- [x] Reuse the existing shortcode rendering implementation for dynamic block output.
+- [x] Keep existing shortcodes fully backward-compatible; block support is additive.
+- [x] Add Node.js editor tests covering registration of all nine blocks and the History limit control.
+- [x] Add PHP CLI tests for dynamic block registration, editor configuration, server-render callbacks, station sanitization and History limit bounds.
+- [x] Keep the legacy History shortcode as the official AzuraCast iframe and render Gutenberg History natively from `song_history` so its display limit has an effect.
+- [ ] Verify block insertion, sidebar controls, saved attributes and frontend rendering on the staging WordPress site (runtime editor testing is still required).
+- [ ] Verify the station connection test in the WordPress admin against the configured AzuraCast station.
 
 ### Priority 2 — additional station data
 
-- [ ] Evaluate public AzuraCast data for current listener count and live/offline status.
-- [ ] Add optional listener-count and station-status components only after confirming the relevant public API fields and behavior against the target AzuraCast version.
-- [ ] Review current artwork handling and provide consistent fallbacks for missing, invalid or unavailable artwork.
-- [ ] Consider a compact upcoming-show component using the public schedule data; do not calculate or invent schedule entries in WordPress.
+- [x] Evaluate public AzuraCast data for current listener count and live broadcast mode; do not equate AutoDJ with a server outage.
+- [x] Add optional listener-count and broadcast-mode components using the existing Now Playing payload: `listeners.current` (fallback `listeners.total`) and the explicit boolean `live.is_live`. The component displays Live DJ/AutoDJ and does not claim server online/offline status.
+- [x] Add a consistent, accessible artwork placeholder for missing/invalid URLs and image-load failures; remove it only after a valid image loads.
+- [x] Add frontend tests for listener counts, Live DJ and AutoDJ states.
+- [x] Add a compact Upcoming Show shortcode and Gutenberg block using the public Schedule endpoint; select only the first future entry returned by AzuraCast (or the current entry when no future entry exists), without calculating or inventing schedule entries.
+- [x] Add Node.js regression tests for listener count and both Live DJ/AutoDJ states.
 
 ### Priority 2 — performance, accessibility and presentation
 
-- [ ] Measure REST request frequency and WebSocket reconnect behavior before introducing caching or polling changes.
+- [x] Measure REST request frequency and WebSocket reconnect behavior: multiple live components for one station now share one initial REST snapshot and one WebSocket; reconnect refreshes one snapshot, while separate stations remain isolated. No additional polling or live-update caching was introduced.
 - [ ] If caching is needed, use a short TTL for REST snapshots only; never cache or delay live WebSocket publications.
-- [ ] Review loading, empty, offline and error states for consistent styling and clear user feedback.
-- [ ] Add/verify accessible labels, meaningful artwork alt text, keyboard behavior and screen-reader announcements for changing Now Playing information.
+- [x] Cover core loading, empty-queue, unavailable API, missing-artwork and reconnect/error states with clear user feedback and regression tests.
+- [ ] Complete a full staging accessibility review for keyboard and screen-reader behavior; current code provides artwork alt text/fallback labels and polite atomic live regions for changing Now Playing, Playing Next and listener/broadcast indicators.
 - [ ] Keep the plugin lightweight and avoid loading frontend assets on pages that do not use its shortcodes or blocks.
 
 ### Later milestone — builder integrations (candidate 1.5.0)
@@ -71,11 +82,11 @@ The next release should add useful WordPress-native workflows without replacing 
 
 ## 1.4.0 release acceptance checklist
 
-- [ ] All feature work is merged into `development`; no unfinished feature is included in the release candidate.
-- [ ] PHP, JavaScript, unit, integration and WordPress Plugin Check workflows pass.
+- [x] All currently implemented feature work is committed to `development`; remaining items are staging validation and release-readiness tasks. No changes have been merged into `main`.
+- [x] PHP CLI, JavaScript regression, package validation and WordPress Plugin Check workflows pass on the current development candidate (live WordPress/AzuraCast staging validation remains separate).
 - [ ] Test on a staging WordPress installation with the supported PHP versions and the target AzuraCast version.
 - [ ] Re-test every shortcode and block, multiple stations, settings save/update, desktop/tablet/mobile and Light/Dark themes.
-- [ ] Re-test online/offline state, empty queue, artwork fallback, WebSocket reconnect and browser back/forward navigation.
+- [ ] Re-test online/offline state, empty queue, artwork fallback, WebSocket reconnect and browser back/forward navigation, plus the new Listener Count and Broadcast Mode components on the staging site.
 - [ ] Test fresh installation and upgrade from 1.3.4, including rollback/recovery notes.
 - [ ] Update plugin version, `readme.txt`, `CHANGELOG.md`, documentation and ZIP filename consistently.
 - [ ] Build and inspect the clean installable ZIP from the release tag.

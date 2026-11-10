@@ -28,13 +28,15 @@ jobs:
       - name: Run frontend syntax and regression checks
         run: |
           node --check assets/js/front.js
-          node --test tests/front-js.test.js
+          node --check assets/js/blocks.js
+          node --test tests/*.test.js
+          for test_file in tests/*.test.php; do php "$test_file"; done
       - name: Build clean release ZIP and lint included PHP
         run: bash scripts/build-release.sh "${{ runner.temp }}/release-package"
       - name: Upload installable ZIP artifact
         uses: actions/upload-artifact@v4
         with:
-          name: azuracast-native-suite-1.3.4
-          path: ${{ runner.temp }}/release-package/azuracast-native-suite-1.3.4.zip
+          name: azuracast-native-suite-1.4.0
+          path: ${{ runner.temp }}/release-package/azuracast-native-suite-1.4.0.zip
           if-no-files-found: error
           retention-days: 30

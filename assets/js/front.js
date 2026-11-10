@@ -25,14 +25,23 @@
             return;
         }
         const artUrl = (typeof song.art === 'string') ? song.art.trim() : '';
-        if (showArt && /^https?:\/\//i.test(artUrl)) {
-            const image = make('img', 'azns-art');
-            image.src = artUrl;
-            image.alt = 'Album artwork';
-            image.loading = 'lazy';
-            image.referrerPolicy = 'no-referrer';
-            image.onerror = () => image.remove();
-            target.append(image);
+        if (showArt) {
+            const fallback = make('span', 'azns-art-placeholder', 'No artwork');
+            fallback.setAttribute('role', 'img');
+            fallback.setAttribute('aria-label', 'Album artwork unavailable');
+            target.append(fallback);
+
+            if (/^https?:\/\//i.test(artUrl)) {
+                const image = make('img', 'azns-art');
+                image.alt = 'Album artwork';
+                image.loading = 'lazy';
+                image.decoding = 'async';
+                image.referrerPolicy = 'no-referrer';
+                image.onload = () => fallback.remove();
+                image.onerror = () => image.remove();
+                image.src = artUrl;
+                target.append(image);
+            }
         }
         const meta = make('div', 'azns-track-meta');
         meta.append(make('strong', 'azns-title', trackLabel(song)));
@@ -136,6 +145,212 @@
         });
     }
 
+    function renderUpcomingShow(widget, entries) {
+        const target = widget.querySelector('.azns-upcoming');
+        if (!target) return;
+        target.replaceChildren();
+
+        if (!Array.isArray(entries) || entries.length === 0) {
+            target.append(make('p', '', 'No upcoming show is scheduled.'));
+            return;
+        }
+
+        // AzuraCast returns ongoing and future entries in schedule order.
+        // Prefer the first future entry; fall back to the current entry when no future one exists.
+        const upcoming = entries.find(item => item && item.is_now === false);
+        const current = entries.find(item => item && item.is_now === true);
+        const selected = upcoming || current;
+        if (!selected) {
+            target.append(make('p', '', 'No upcoming show is scheduled.'));
+            return;
+        }
+
+        const card = make('article', 'azns-item azns-upcoming-card');
+        const label = selected.is_now === true
+            ? 'On air now'
+            : (selected.type === 'streamer' ? 'Next live show' : (selected.type === 'playlist' ? 'Next playlist' : 'Up next'));
+        card.append(make('small', 'azns-upcoming-label azns-live', label));
+        card.append(make('strong', 'azns-upcoming-title', selected.title || selected.name || 'Untitled schedule entry'));
+        if (selected.description) card.append(make('p', '', selected.description));
+
+        const rawTimestamp = selected.start_timestamp;
+        const timestamp = (typeof rawTimestamp === 'number' || (typeof rawTimestamp === 'string' && rawTimestamp.trim() !== ''))
+            ? Number(rawTimestamp)
+            : NaN;
+        let startDate = Number.isFinite(timestamp) && timestamp > 0
+            ? new Date(timestamp * 1000)
+            : null;
+        if ((!startDate || !Number.isFinite(startDate.getTime())) && typeof selected.start === 'string') {
+            const parsed = new Date(selected.start);
+            if (Number.isFinite(parsed.getTime())) startDate = parsed;
+        }
+        if (startDate && Number.isFinite(startDate.getTime())) {
+            const time = make('time', 'azns-upcoming-time');
+            time.dateTime = (typeof selected.start === 'string' && selected.start.trim())
+                ? selected.start
+                : startDate.toISOString();
+            time.textContent = startDate.toLocaleString(undefined, {
+                dateStyle: 'medium',
+                timeStyle: 'short',
+            });
+            card.append(time);
+        }
+
+        target.append(card);
+    }
+
+    // Components for the same station share one snapshot request and one live WebSocket.
+    const stationFeeds = new Map();
+
+    function stationFeedKey(config) {
+        try {
+            const server = new URL(config.server);
+            const basePath = server.pathname.replace(/\/+$/, '');
+            return server.origin + basePath + '|' + config.shortcode;
+        } catch (error) {
+            return String(config.server || '') + '|' + String(config.shortcode || '');
+        }
+    }
+
+    function createStationFeed(config) {
+        const subscribers = new Set();
+        let active = false;
+        let socket = null;
+        let retryTimer = null;
+        let retryDelay = 1000;
+        let realtimeRevision = 0;
+        let snapshotSequence = 0;
+        let latestData = null;
+        let lastStatus = '';
+
+        const notifyStatus = message => {
+            lastStatus = message;
+            subscribers.forEach(subscriber => subscriber.onStatus?.(message));
+        };
+
+        const publish = data => {
+            latestData = data;
+            notifyStatus('');
+            subscribers.forEach(subscriber => subscriber.onData?.(data));
+        };
+
+        const loadSnapshot = async () => {
+            const revisionAtRequest = realtimeRevision;
+            const requestId = ++snapshotSequence;
+            try {
+                const response = await fetch(config.rest + 'nowplaying', { credentials: 'same-origin' });
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                const data = await response.json();
+                if (!active || requestId !== snapshotSequence) return;
+                // A WebSocket publication is newer than any snapshot request already in flight.
+                if (realtimeRevision === revisionAtRequest) publish(data);
+            } catch (error) {
+                if (active && requestId === snapshotSequence && realtimeRevision === revisionAtRequest) {
+                    notifyStatus('Unable to load nowplaying');
+                }
+            }
+        };
+
+        const handlePayload = payload => {
+            const data = payload?.data?.np;
+            if (data && typeof data === 'object') {
+                realtimeRevision += 1;
+                publish(data);
+            }
+        };
+
+        const scheduleRetry = () => {
+            if (!active) return;
+            notifyStatus('Connection lost; reconnecting…');
+            clearTimeout(retryTimer);
+            retryTimer = setTimeout(() => {
+                loadSnapshot();
+                connect();
+            }, retryDelay);
+            retryDelay = Math.min(retryDelay * 2, 30000);
+        };
+
+        const connect = () => {
+            if (!active) return;
+            try {
+                const server = new URL(config.server);
+                const protocol = server.protocol === 'https:' ? 'wss:' : 'ws:';
+                const basePath = server.pathname.replace(/\/+$/, '');
+                socket = new WebSocket(protocol + '//' + server.host + basePath + '/api/live/nowplaying/websocket');
+            } catch (error) {
+                scheduleRetry();
+                return;
+            }
+
+            socket.onopen = () => {
+                retryDelay = 1000;
+                notifyStatus('');
+                const subscriptions = {};
+                subscriptions['station:' + config.shortcode] = { recover: true };
+                socket.send(JSON.stringify({ subs: subscriptions }));
+            };
+            socket.onmessage = event => {
+                try {
+                    const message = JSON.parse(event.data);
+                    if (message.pub) handlePayload(message.pub);
+                    if (Array.isArray(message.connect?.data)) {
+                        message.connect.data.forEach(handlePayload);
+                    } else {
+                        Object.values(message.connect?.subs || {}).forEach(subscription => {
+                            (subscription.publications || []).forEach(handlePayload);
+                        });
+                    }
+                } catch (error) {
+                    // Ignore malformed frames and empty ping messages.
+                }
+            };
+            socket.onerror = () => notifyStatus('WebSocket reconnecting');
+            socket.onclose = scheduleRetry;
+        };
+
+        return {
+            subscribe(subscriber) {
+                subscribers.add(subscriber);
+                if (latestData) subscriber.onData?.(latestData);
+                if (lastStatus) subscriber.onStatus?.(lastStatus);
+                if (!active) {
+                    active = true;
+                    loadSnapshot();
+                    connect();
+                }
+            },
+            unsubscribe(subscriber) {
+                subscribers.delete(subscriber);
+                if (subscribers.size !== 0) return false;
+                active = false;
+                clearTimeout(retryTimer);
+                if (socket) {
+                    socket.onclose = null;
+                    socket.onerror = null;
+                    socket.onmessage = null;
+                    socket.onopen = null;
+                    socket.close();
+                    socket = null;
+                }
+                return true;
+            },
+        };
+    }
+
+    function subscribeNowPlaying(config, subscriber) {
+        const key = stationFeedKey(config);
+        let feed = stationFeeds.get(key);
+        if (!feed) {
+            feed = createStationFeed(config);
+            stationFeeds.set(key, feed);
+        }
+        feed.subscribe(subscriber);
+
+        return () => {
+            if (feed.unsubscribe(subscriber)) stationFeeds.delete(key);
+        };
+    }
+
     function init(widget) {
         const config = configs[widget.id];
         if (!config) return;
@@ -143,11 +358,6 @@
         const status = widget.querySelector('.azns-status');
         const limit = Number(widget.dataset.limit) || 10;
         let active = true;
-        let socket = null;
-        let retryTimer = null;
-        let retryDelay = 1000;
-        // Prevent a slow REST snapshot from overwriting a newer WebSocket publication.
-        let realtimeRevision = 0;
 
         const setStatus = message => {
             if (!status) return;
@@ -166,111 +376,80 @@
                 if (!list.children.length) list.append(make('li', '', 'No recent tracks'));
             } else if (type === 'next') {
                 renderNextTrack(widget.querySelector('.azns-next'), data, config.art);
+            } else if (type === 'listeners') {
+                const target = widget.querySelector('.azns-indicator');
+                target.replaceChildren();
+                const rawCount = data.listeners?.current ?? data.listeners?.total;
+                const count = Number(rawCount);
+                if (Number.isFinite(count) && count >= 0) {
+                    target.append(make('strong', 'azns-indicator-value', Math.floor(count) + ' listening'));
+                } else {
+                    target.append(make('span', '', 'Listener count unavailable'));
+                }
+            } else if (type === 'broadcast') {
+                const target = widget.querySelector('.azns-indicator');
+                target.replaceChildren();
+                if (!data.live || typeof data.live.is_live !== 'boolean') {
+                    target.append(make('span', '', 'Broadcast mode unavailable'));
+                } else if (data.live.is_live) {
+                    const streamer = (typeof data.live.streamer_name === 'string' && data.live.streamer_name.trim())
+                        ? ' — ' + data.live.streamer_name.trim()
+                        : '';
+                    target.append(make('strong', 'azns-indicator-value', 'Live DJ' + streamer));
+                } else {
+                    target.append(make('strong', 'azns-indicator-value', 'AutoDJ'));
+                }
             } else {
                 const target = widget.querySelector('.azns-current');
                 renderTrack(target, data.now_playing, config.art);
                 if (data.listeners) {
-                    target.append(make('small', 'azns-listeners', `${data.listeners.current ?? data.listeners.total ?? 0} listening`));
+                    target.append(make('small', 'azns-listeners', (data.listeners.current ?? data.listeners.total ?? 0) + ' listening'));
                 }
                 if (data.live?.is_live) {
-                    target.append(make('small', 'azns-live', `Live: ${data.live.streamer_name || 'DJ'}`));
+                    target.append(make('small', 'azns-live', 'Live: ' + (data.live.streamer_name || 'DJ')));
                 }
             }
         };
 
         const load = async resource => {
-            const revisionAtRequest = (resource === 'nowplaying') ? realtimeRevision : 0;
             try {
                 const response = await fetch(config.rest + resource, { credentials: 'same-origin' });
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                if (!response.ok) throw new Error('HTTP ' + response.status);
                 const data = await response.json();
                 if (!active) return;
-                if (resource === 'nowplaying') {
-                    // Keep the real-time publication when it arrived after this request began.
-                    if (realtimeRevision === revisionAtRequest) applyNowPlaying(data);
-                } else if (resource === 'podcasts') {
+                setStatus('');
+                if (resource === 'podcasts') {
                     renderPodcastList(widget, data, config);
                 } else if (resource === 'schedule') {
-                    renderSchedule(widget, data);
+                    if (type === 'upcoming') renderUpcomingShow(widget, data);
+                    else renderSchedule(widget, data);
                 }
             } catch (error) {
-                // A failed, older snapshot must not replace the state supplied by the live feed.
-                if (resource !== 'nowplaying' || realtimeRevision === revisionAtRequest) {
-                    setStatus(`Unable to load ${resource}`);
-                }
+                if (active) setStatus('Unable to load ' + resource);
             }
         };
 
-        if (type === 'podcasts' || type === 'schedule') {
-            load(type);
+        if (type === 'podcasts' || type === 'schedule' || type === 'upcoming') {
+            widget._aznsClose = () => {
+                active = false;
+                widget._aznsClose = null;
+            };
+            load(type === 'upcoming' ? 'schedule' : type);
             return;
         }
 
-        load('nowplaying');
-        const handlePayload = payload => {
-            // AzuraCast publishes the full Now Playing JSON object inside pub.data.np.
-            // The next item is therefore available at pub.data.np.playing_next.
-            const data = payload?.data?.np;
-            if (data && typeof data === 'object') {
-                realtimeRevision += 1;
-                applyNowPlaying(data);
-            }
-        };
-        const retry = () => {
-            if (!active) return;
-            setStatus('Connection lost; reconnecting…');
-            clearTimeout(retryTimer);
-            retryTimer = setTimeout(() => {
-                // Refresh the JSON snapshot as well as reconnecting the real-time feed.
-                load('nowplaying');
-                connect();
-            }, retryDelay);
-            retryDelay = Math.min(retryDelay * 2, 30000);
-        };
-        const connect = () => {
-            if (!active) return;
-            try {
-                const server = new URL(config.server);
-                const protocol = server.protocol === 'https:' ? 'wss:' : 'ws:';
-                const basePath = server.pathname.replace(/\/+$/, '');
-                socket = new WebSocket(`${protocol}//${server.host}${basePath}/api/live/nowplaying/websocket`);
-            } catch (error) {
-                retry();
-                return;
-            }
-            socket.onopen = () => {
-                retryDelay = 1000;
-                const subscriptions = {};
-                subscriptions[`station:${config.shortcode}`] = { recover: true };
-                socket.send(JSON.stringify({ subs: subscriptions }));
-            };
-            socket.onmessage = event => {
-                try {
-                    const message = JSON.parse(event.data);
-                    if (message.pub) handlePayload(message.pub);
-                    if (Array.isArray(message.connect?.data)) {
-                        message.connect.data.forEach(handlePayload);
-                    } else {
-                        Object.values(message.connect?.subs || {}).forEach(subscription => {
-                            (subscription.publications || []).forEach(handlePayload);
-                        });
-                    }
-                } catch (error) {
-                    // Ignore malformed or non-JSON frames; AzuraCast also sends empty ping frames.
-                }
-            };
-            socket.onerror = () => setStatus('WebSocket reconnecting');
-            socket.onclose = retry;
-        };
-        connect();
+        const unsubscribe = subscribeNowPlaying(config, {
+            onData: data => {
+                if (active) applyNowPlaying(data);
+            },
+            onStatus: message => {
+                if (active) setStatus(message);
+            },
+        });
+
         widget._aznsClose = () => {
             active = false;
-            clearTimeout(retryTimer);
-            if (socket) {
-                socket.onclose = null;
-                socket.onerror = null;
-                socket.close();
-            }
+            unsubscribe();
             widget._aznsClose = null;
         };
     }

@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - development
+      - main
   workflow_dispatch:
 
 permissions:
@@ -31,6 +32,7 @@ jobs:
       - name: Lint all PHP files
         run: |
           find . -type f -name '*.php' -not -path './.git/*' -print0 | xargs -0 -n1 php -l
+          for test_file in tests/*.test.php; do php "$test_file"; done
 
   frontend:
     name: JavaScript syntax and regression tests
@@ -43,6 +45,34 @@ jobs:
         with:
           node-version: 22
       - name: Check frontend JavaScript syntax
-        run: node --check assets/js/front.js
+        run: |
+          node --check assets/js/front.js
+          node --check assets/js/blocks.js
       - name: Run frontend regression tests
-        run: node --test tests/front-js.test.js
+        run: node --test tests/*.test.js
+
+  wordpress-plugin-check:
+    name: WordPress Plugin Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          coverage: none
+      - name: Build clean plugin archive
+        run: |
+          bash scripts/build-release.sh "${{ runner.temp }}/release-package"
+          mkdir -p "${{ runner.temp }}/plugin-check"
+          unzip -q "${{ runner.temp }}/release-package/azuracast-native-suite-1.4.0.zip" -d "${{ runner.temp }}/plugin-check"
+      - name: Run WordPress Plugin Check
+        uses: wordpress/plugin-check-action@v1
+        with:
+          build-dir: ${{ runner.temp }}/plugin-check/azuracast-native-suite
+          categories: |
+            general
+            security
+            performance
+            accessibility

@@ -21,7 +21,7 @@ if [[ -z "$VERSION" || "$VERSION" != "$STABLE_TAG" ]]; then
     exit 1
 fi
 
-for required in "includes/class-azns-api.php" "includes/class-azns-admin.php" "includes/class-azns-logger.php" "includes/class-azns-shortcodes.php" "includes/class-azns-stations.php" "assets/js/front.js" "assets/css/front.css"; do
+for required in "includes/class-azns-api.php" "includes/class-azns-admin.php" "includes/class-azns-blocks.php" "includes/class-azns-logger.php" "includes/class-azns-shortcodes.php" "includes/class-azns-stations.php" "assets/js/front.js" "assets/js/blocks.js" "assets/css/front.css"; do
     if [[ ! -f "$ROOT/$required" ]]; then
         echo "Missing required plugin file: $required" >&2
         exit 1
@@ -51,7 +51,7 @@ rm -f "$ZIP_FILE"
 
 unzip -tq "$ZIP_FILE"
 ZIP_LIST="$(unzip -Z1 "$ZIP_FILE")"
-for required in "$PLUGIN_SLUG/azuracast-native-suite.php" "$PLUGIN_SLUG/readme.txt" "$PLUGIN_SLUG/includes/class-azns-api.php" "$PLUGIN_SLUG/assets/js/front.js" "$PLUGIN_SLUG/assets/css/front.css"; do
+for required in "$PLUGIN_SLUG/azuracast-native-suite.php" "$PLUGIN_SLUG/readme.txt" "$PLUGIN_SLUG/includes/class-azns-api.php" "$PLUGIN_SLUG/assets/js/front.js" "$PLUGIN_SLUG/assets/js/blocks.js" "$PLUGIN_SLUG/assets/css/front.css"; do
     if ! grep -Fxq "$required" <<< "$ZIP_LIST"; then
         echo "Release ZIP is missing: $required" >&2
         exit 1
