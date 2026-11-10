@@ -66,7 +66,7 @@ The next release should add useful WordPress-native workflows without replacing 
 
 ### Priority 2 — performance, accessibility and presentation
 
-- [ ] Measure REST request frequency and WebSocket reconnect behavior before introducing caching or polling changes.
+- [x] Measure REST request frequency and WebSocket reconnect behavior: multiple live components for one station now share one initial REST snapshot and one WebSocket; reconnect refreshes one snapshot, while separate stations remain isolated. No additional polling or live-update caching was introduced.
 - [ ] If caching is needed, use a short TTL for REST snapshots only; never cache or delay live WebSocket publications.
 - [x] Cover core loading, empty-queue, unavailable API, missing-artwork and reconnect/error states with clear user feedback and regression tests.
 - [ ] Complete a full staging accessibility review for keyboard and screen-reader behavior; current code provides artwork alt text/fallback labels and polite atomic live regions for changing Now Playing, Playing Next and listener/broadcast indicators.

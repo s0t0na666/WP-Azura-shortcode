@@ -65,6 +65,7 @@ location ^~ /wp-content/uploads/azuracast-logs/ {
 * Added dynamic Gutenberg blocks for all eight station components.
 * Added an administrator-only station connection test, per-station health history and a sanitized diagnostics export.
 * Added listener-count and Live DJ/AutoDJ display components.
+* Shared the Now Playing REST snapshot and WebSocket connection across live components for each station, while keeping multiple stations isolated.
 * Added an accessible fallback for missing or unavailable album artwork and polite screen-reader announcements for live metadata.
 * Added regression checks for WebSocket reconnects, unavailable API responses, shortcode output/accessibility and dynamic Gutenberg server rendering.
 * Expanded PHP CLI and JavaScript regression tests for station configuration, API proxy behavior and frontend updates.

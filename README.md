@@ -16,7 +16,7 @@ The public AzuraCast demo's static Now Playing JSON was checked and contains `pl
 
 Automated checks are configured for pushes and pull requests targeting the `development` branch:
 - PHP syntax lint and CLI regression scripts on PHP 8.1 and PHP 8.5. The PHP tests cover station configuration and URL validation, the public API resource allow-list, proxy endpoint construction, cache TTLs, upstream failures, the administrator connection check and diagnostics privacy.
-- JavaScript syntax checking and Node.js regression tests for all eight Gutenberg block registrations, initial Now Playing JSON, real-time WebSocket updates, an empty Playing Next queue, stale-response ordering, listener counts and Live DJ/AutoDJ states.
+- JavaScript syntax checking and Node.js regression tests for all eight Gutenberg block registrations, initial Now Playing JSON, real-time WebSocket updates, an empty Playing Next queue, stale-response ordering, listener counts, Live DJ/AutoDJ states and shared per-station feed lifecycle.
 - The official WordPress Plugin Check action runs against a clean installable archive, covering general, security, performance and accessibility checks.
 
 The source has been reviewed against the AzuraCast 0.24.0 OpenAPI schema and public route definitions. CI includes PHP CLI regression tests for station settings and URL validation, API proxy behavior, Gutenberg registration/server-render callbacks and attributes, shortcode output/accessibility attributes, admin connection checks and diagnostics privacy. The official WordPress Plugin Check reports no errors for the clean plugin archive. Source review and CI tests do **not** replace runtime integration tests against the target AzuraCast instance and a staging WordPress site. See [TODO.md](TODO.md) for the remaining checks.
@@ -55,7 +55,7 @@ Two lightweight components use the fields already included in AzuraCast's Now Pl
 - `[azura_listeners station="your_station_shortcode"]` displays the current listener count from `listeners.current` (with `listeners.total` as a fallback).
 - `[azura_broadcast_mode station="your_station_shortcode"]` displays **Live DJ** with the streamer name when `live.is_live` is true, or **AutoDJ** when it is false. If AzuraCast does not return a boolean live flag, the component reports that broadcast mode is unavailable instead of guessing.
 
-Matching Gutenberg blocks are available as **AzuraCast Listener Count** and **AzuraCast Broadcast Mode**. Both use the existing Now Playing REST/WebSocket connection and do not add extra requests.
+Matching Gutenberg blocks are available as **AzuraCast Listener Count** and **AzuraCast Broadcast Mode**. Now Playing, Playing Next, History, Listener Count and Broadcast Mode components for the same station share one initial REST snapshot request and one browser-side WebSocket connection. Reconnects refresh one snapshot for that station; other configured stations keep independent connections.
 
 ## Artwork fallback — 1.4.0 development
 

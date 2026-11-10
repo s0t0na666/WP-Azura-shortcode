@@ -8,6 +8,7 @@
 - Added form feedback for invalid/duplicate station rows and invalid default-station selection.
 - Added a sanitized diagnostics JSON export that omits server URLs and custom CSS and redacts secrets/URLs in log entries.
 - Added listener-count and Live DJ/AutoDJ components using the existing Now Playing JSON/WebSocket feed.
+- Shared one initial Now Playing REST snapshot and one WebSocket connection per station across all live components, with isolated feeds for different stations and a fresh snapshot on reconnect.
 - Added an accessible artwork fallback for missing URLs and failed image loads, plus polite atomic live regions for changing track and listener data.
 - Added reconnect/offline frontend regression cases, PHP shortcode render/accessibility tests and PHP tests for Gutenberg registration/server-render callbacks.
 - Added PHP CLI regression coverage for station configuration, URL validation, API resource allow-listing, endpoint construction, cache TTLs, malformed responses and REST proxy status handling.
