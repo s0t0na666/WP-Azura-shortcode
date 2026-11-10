@@ -360,7 +360,7 @@ test('shares one REST snapshot and one WebSocket across components for the same 
         }),
     });
 
-    assert.match(harness.states[0].target.textContent, /Live Artist - Live Update/);
+    assert.match(harness.states[0].target.textContent, /Live Artist — Live Update/);
     assert.match(harness.states[1].target.textContent, /21 listening/);
     assert.match(harness.states[2].target.textContent, /AutoDJ/);
     assert.match(harness.states[3].target.textContent, /Current Artist — Live Track/);
