@@ -340,10 +340,10 @@ test('shares one REST snapshot and one WebSocket across components for the same 
 
     assert.equal(fetchCount, 1, 'Widgets for one station should share a single initial REST request.');
     assert.equal(harness.sockets.length, 1, 'Widgets for one station should share a single WebSocket.');
-    assert.match(harness.states[0].target.textContent, /Shared Artist - Shared Snapshot/);
+    assert.match(harness.states[0].target.textContent, /Shared Artist — Shared Snapshot/);
     assert.match(harness.states[1].target.textContent, /14 listening/);
     assert.match(harness.states[2].target.textContent, /Live DJ — Shared DJ/);
-    assert.match(harness.states[3].target.textContent, /Current Artist - Current Track/);
+    assert.match(harness.states[3].target.textContent, /Current Artist — Current Track/);
 
     harness.sockets[0].onmessage({
         data: JSON.stringify({
@@ -363,7 +363,7 @@ test('shares one REST snapshot and one WebSocket across components for the same 
     assert.match(harness.states[0].target.textContent, /Live Artist - Live Update/);
     assert.match(harness.states[1].target.textContent, /21 listening/);
     assert.match(harness.states[2].target.textContent, /AutoDJ/);
-    assert.match(harness.states[3].target.textContent, /Current Artist - Live Track/);
+    assert.match(harness.states[3].target.textContent, /Current Artist — Live Track/);
 });
 
 test('keeps separate live connections for different configured stations', async () => {
@@ -378,8 +378,16 @@ test('keeps separate live connections for different configured stations', async 
 
     assert.equal(fetchCount, 2);
     assert.equal(harness.sockets.length, 2);
-    assert.match(harness.sockets[0].url, /test_station/);
-    assert.match(harness.sockets[1].url, /other_station/);
+    harness.sockets[0].onopen();
+    harness.sockets[1].onopen();
+    assert.deepEqual(
+        JSON.parse(harness.sockets[0].sent[0]).subs,
+        { 'station:test_station': { recover: true } }
+    );
+    assert.deepEqual(
+        JSON.parse(harness.sockets[1].sent[0]).subs,
+        { 'station:other_station': { recover: true } }
+    );
 });
 
 test('keeps a shared WebSocket alive until the final component unsubscribes', async () => {
