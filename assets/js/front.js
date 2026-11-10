@@ -417,6 +417,7 @@
                 if (!response.ok) throw new Error('HTTP ' + response.status);
                 const data = await response.json();
                 if (!active) return;
+                setStatus('');
                 if (resource === 'podcasts') {
                     renderPodcastList(widget, data, config);
                 } else if (resource === 'schedule') {
@@ -429,6 +430,10 @@
         };
 
         if (type === 'podcasts' || type === 'schedule' || type === 'upcoming') {
+            widget._aznsClose = () => {
+                active = false;
+                widget._aznsClose = null;
+            };
             load(type === 'upcoming' ? 'schedule' : type);
             return;
         }

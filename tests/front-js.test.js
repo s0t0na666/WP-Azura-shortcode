@@ -92,9 +92,12 @@ function createHarness(fetchImpl, type = 'next', art = false, extraWidgets = [],
             art: state.art,
         };
     });
+    const windowListeners = {};
     const window = {
         AZNS: configurations,
-        addEventListener() {},
+        addEventListener(name, callback) {
+            windowListeners[name] = callback;
+        },
     };
 
     class FakeWebSocket {
@@ -140,6 +143,7 @@ function createHarness(fetchImpl, type = 'next', art = false, extraWidgets = [],
         sockets,
         timers,
         states,
+        windowListeners,
     };
 }
 
@@ -479,4 +483,34 @@ test('shows an explicit empty state when AzuraCast has no schedule entries', asy
     await flushPromises();
 
     assert.match(harness.target.textContent, /No upcoming show is scheduled/);
+});
+
+test('clears the loading status and reloads Upcoming Show after BFCache restoration', async () => {
+    let fetchCount = 0;
+    const harness = createHarness(async () => {
+        fetchCount += 1;
+        return response([{
+            type: 'streamer',
+            title: 'Restored DJ',
+            name: 'Restored DJ',
+            is_now: false,
+            start: '2026-11-10T18:00:00+01:00',
+            start_timestamp: 1794330000,
+        }]);
+    }, 'upcoming');
+    await flushPromises();
+
+    assert.equal(fetchCount, 1);
+    assert.equal(harness.status.hidden, true, 'A successful schedule response should clear the loading status.');
+    assert.match(harness.target.textContent, /Restored DJ/);
+
+    harness.windowListeners.pagehide();
+    assert.equal(harness.widget._aznsClose, null, 'Page hide should release the static widget lifecycle.');
+
+    harness.windowListeners.pageshow({ persisted: true });
+    await flushPromises();
+
+    assert.equal(fetchCount, 2, 'A BFCache restore should load a fresh schedule response.');
+    assert.equal(harness.status.hidden, true);
+    assert.match(harness.target.textContent, /Restored DJ/);
 });
