@@ -422,7 +422,7 @@ test('renders only the configured number of recent history entries', async () =>
 
 test('renders the next scheduled show from AzuraCast schedule data, not the current item', async () => {
     const requests = [];
-    const startTimestamp = 1794247200;
+    const startTimestamp = 1794330000;
     const harness = createHarness(async url => {
         requests.push(url);
         return response([
@@ -432,7 +432,7 @@ test('renders the next scheduled show from AzuraCast schedule data, not the curr
                 name: 'Current DJ',
                 is_now: true,
                 start: '2026-11-10T15:00:00+01:00',
-                start_timestamp: 1794328800,
+                start_timestamp: 1794319200,
             },
             {
                 type: 'streamer',

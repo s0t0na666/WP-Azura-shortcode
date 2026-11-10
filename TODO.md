@@ -62,7 +62,7 @@ The next release should add useful WordPress-native workflows without replacing 
 - [x] Add optional listener-count and broadcast-mode components using the existing Now Playing payload: `listeners.current` (fallback `listeners.total`) and the explicit boolean `live.is_live`. The component displays Live DJ/AutoDJ and does not claim server online/offline status.
 - [x] Add a consistent, accessible artwork placeholder for missing/invalid URLs and image-load failures; remove it only after a valid image loads.
 - [x] Add frontend tests for listener counts, Live DJ and AutoDJ states.
-- [ ] Consider a compact upcoming-show component using the public schedule data; do not calculate or invent schedule entries in WordPress.
+- [x] Add a compact Upcoming Show shortcode and Gutenberg block using the public Schedule endpoint; select only the first future entry returned by AzuraCast (or the current entry when no future entry exists), without calculating or inventing schedule entries.
 - [x] Add Node.js regression tests for listener count and both Live DJ/AutoDJ states.
 
 ### Priority 2 — performance, accessibility and presentation

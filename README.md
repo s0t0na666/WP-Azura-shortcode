@@ -6,7 +6,7 @@ WordPress plugin for embedding AzuraCast public pages and displaying radio compo
 
 Current development source version: **1.4.0**.
 
-The plugin uses AzuraCast public-page embeds for the full Player, History shortcode, Podcasts, and Schedule interfaces. The Gutenberg History block is a native WordPress list sourced from AzuraCast's `song_history` data and applies its own display limit. Standalone Now Playing/Playing Next components consume AzuraCast's own Now Playing data instead of creating or estimating metadata in WordPress.
+The plugin uses AzuraCast public-page embeds for the full Player, History shortcode, Podcasts, and Schedule interfaces. The Gutenberg History block is a native WordPress list sourced from AzuraCast's `song_history` data and applies its own display limit. A compact Upcoming Show component reads AzuraCast's public Schedule endpoint and displays the next returned schedule entry. Standalone Now Playing/Playing Next components consume AzuraCast's own Now Playing data instead of creating or estimating metadata in WordPress.
 
 **Playing Next data flow:** the initial state is read from `/api/nowplaying/{station_shortcode}` through the plugin's public WordPress REST proxy. Real-time updates arrive over AzuraCast's `/api/live/nowplaying/websocket` connection, in the `pub.data.np.playing_next` field. If the WebSocket drops, the plugin refreshes the JSON snapshot while reconnecting. A `playing_next: null` response means AzuraCast currently has no next item to show; it is not treated as an API parsing error. A late REST response cannot overwrite a newer WebSocket publication.
 
@@ -31,10 +31,11 @@ The `development` branch now registers eight dynamic Gutenberg blocks:
 - AzuraCast History (native recent-track list with a configurable display limit)
 - AzuraCast Podcasts
 - AzuraCast Schedule
+- AzuraCast Upcoming Show (from the next public schedule entry)
 - AzuraCast Listener Count
 - AzuraCast Broadcast Mode (Live DJ / AutoDJ)
 
-Each block can use the default station or select a configured station in the block sidebar. Blocks reuse the existing shortcode renderer on the server. The Gutenberg History block selects a native list renderer so its maximum-entry control works; the existing `[azura_history]` shortcode remains the official AzuraCast History iframe. The native list can show fewer entries than its selected maximum when the station's public API history setting returns fewer rows. This work is under development and is not part of the published 1.3.4 release.
+Each block can use the default station or select a configured station in the block sidebar. Blocks reuse the existing shortcode renderer on the server. The Gutenberg History block selects a native list renderer so its maximum-entry control works; the existing `[azura_history]` shortcode remains the official AzuraCast History iframe. The native list can show fewer entries than its selected maximum when the station's public API history setting returns fewer rows. The Upcoming Show component uses the first non-current entry returned by AzuraCast's already ordered schedule response; when there is no future entry, it shows the current entry if one exists. It does not calculate or invent schedule entries. This work is under development and is not part of the published 1.3.4 release.
 
 ## WordPress administration — connection test
 
