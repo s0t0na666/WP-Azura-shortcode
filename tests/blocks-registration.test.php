@@ -124,28 +124,30 @@ foreach ($expected as $block_name => $shortcode_tag) {
     $call = end($shortcodes->calls);
     azns_block_assert($rendered === '<rendered tag="' . $shortcode_tag . '">', 'A block must return output from the matching shortcode renderer.');
     azns_block_assert($call['tag'] === $shortcode_tag, 'A block must delegate to its matching shortcode tag.');
-    azns_block_assert($call['attributes'] === ['station' => 'mugadavanje', 'limit' => 15], 'Block attributes must pass to the shared shortcode renderer.');
+    $expected_attributes = ['station' => 'mugadavanje', 'limit' => 15];
+    if ($block_name === 'azns/history') $expected_attributes['native'] = true;
+    azns_block_assert($call['attributes'] === $expected_attributes, 'Block attributes must pass to the shared shortcode renderer; History must request the native limited renderer.');
 }
 
 $history = $registered['azns/history']['render_callback'];
 $history(['station' => 'Mugadavanje 01', 'limit' => 0]);
 $call = end($shortcodes->calls);
 azns_block_assert(
-    $call['attributes'] === ['station' => 'mugadavanje-01', 'limit' => 1],
+    $call['attributes'] === ['station' => 'mugadavanje-01', 'limit' => 1, 'native' => true],
     'Station attributes must be sanitized and history limits must clamp to a minimum of one.'
 );
 
 $history(['station' => ['not', 'scalar'], 'limit' => 'not-a-number']);
 $call = end($shortcodes->calls);
 azns_block_assert(
-    $call['attributes'] === ['station' => '', 'limit' => 10],
+    $call['attributes'] === ['station' => '', 'limit' => 10, 'native' => true],
     'Malformed block attributes must safely fall back to the default station and limit.'
 );
 
 $history(['station' => 'second_station', 'limit' => 500]);
 $call = end($shortcodes->calls);
 azns_block_assert(
-    $call['attributes'] === ['station' => 'second_station', 'limit' => 50],
+    $call['attributes'] === ['station' => 'second_station', 'limit' => 50, 'native' => true],
     'History limits must clamp to the maximum of fifty.'
 );
 

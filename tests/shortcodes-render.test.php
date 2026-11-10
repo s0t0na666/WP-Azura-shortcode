@@ -117,6 +117,26 @@ azns_shortcode_assert(
 );
 azns_shortcode_assert(strpos($player, 'loading="lazy"') !== false, 'AzuraCast public-page embeds must load lazily.');
 
+$history_embed = $shortcodes->render(['station' => 'test_station'], '', 'azura_history');
+azns_shortcode_assert(
+    strpos($history_embed, 'https://radio.example.test/base-path/public/test_station/history?theme=dark') !== false
+        && strpos($history_embed, '<iframe') !== false,
+    'The existing History shortcode must continue to use the official AzuraCast public-page embed.'
+);
+
+$history_block = $shortcodes->render([
+    'station' => 'test_station',
+    'limit' => 5,
+    'native' => true,
+], '', 'azura_history');
+azns_shortcode_assert(
+    strpos($history_block, 'data-type="history"') !== false
+        && strpos($history_block, 'data-limit="5"') !== false
+        && strpos($history_block, '<ol class="azns-history" aria-live="polite" aria-atomic="true"></ol>') !== false
+        && strpos($history_block, '<iframe') === false,
+    'The Gutenberg History renderer must output a native history list and preserve its configured limit.'
+);
+
 $missing = $shortcodes->render(['station' => 'unknown_station'], '', 'azura_next_track');
 azns_shortcode_assert($missing === '', 'A shortcode with an unknown station must not render frontend error details.');
 

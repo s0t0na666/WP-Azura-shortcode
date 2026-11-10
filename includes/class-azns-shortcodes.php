@@ -12,7 +12,7 @@ final class AZNS_Shortcodes {
     }
 
     public function render($attributes, $content = '', $tag = '') {
-        $attributes = shortcode_atts(['station' => '', 'limit' => 10], (array) $attributes, $tag);
+        $attributes = shortcode_atts(['station' => '', 'limit' => 10, 'native' => false], (array) $attributes, $tag);
         $station = $this->stations->get($attributes['station']);
         if (!$station) { return current_user_can('manage_options') ? '<p>Configure an AzuraCast station first.</p>' : ''; }
 
@@ -31,7 +31,9 @@ final class AZNS_Shortcodes {
         $id = 'azns-' . (++$counter) . '-' . wp_generate_password(4, false, false);
         wp_enqueue_style('azns');
 
-        if (in_array($type, ['player', 'history', 'podcasts', 'schedule'], true)) {
+        $native_history = ($type === 'history' && in_array($attributes['native'], [true, 1, '1', 'true'], true));
+
+        if (in_array($type, ['player', 'history', 'podcasts', 'schedule'], true) && !$native_history) {
             $public_base = trailingslashit($station['url']) . 'public/' . rawurlencode($station['shortcode']);
             $heights = [
                 'player' => 150,
@@ -71,7 +73,9 @@ final class AZNS_Shortcodes {
         wp_add_inline_script('azns', 'window.AZNS=window.AZNS||{};window.AZNS[' . wp_json_encode($id) . ']=' . wp_json_encode($config) . ';', 'before');
 
         $html = '<section id="' . esc_attr($id) . '" class="azns azns-' . esc_attr($type) . ' azns-' . esc_attr($station['theme']) . '" data-type="' . esc_attr($type) . '" data-limit="' . max(1, min(50, absint($attributes['limit']))) . '">';
-        if ($type === 'next') {
+        if ($type === 'history') {
+            $html .= '<ol class="azns-history" aria-live="polite" aria-atomic="true"></ol>';
+        } elseif ($type === 'next') {
             $html .= '<div class="azns-next" aria-live="polite" aria-atomic="true"></div>';
         } elseif (in_array($type, ['listeners', 'broadcast'], true)) {
             $html .= '<div class="azns-indicator" aria-live="polite" aria-atomic="true"></div>';

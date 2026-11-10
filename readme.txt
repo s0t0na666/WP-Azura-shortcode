@@ -32,7 +32,7 @@ Replace `your_station_shortcode` with a shortcode configured in the plugin setti
 * `[azura_player station="your_station_shortcode"]`
 * `[azura_nowplaying station="your_station_shortcode"]`
 * `[azura_next_track station="your_station_shortcode"]`
-* `[azura_history station="your_station_shortcode" limit="10"]`
+* `[azura_history station="your_station_shortcode"]`
 * `[azura_podcasts station="your_station_shortcode"]`
 * `[azura_schedule station="your_station_shortcode"]`
 * `[azura_listeners station="your_station_shortcode"]`
@@ -47,7 +47,7 @@ Legacy Playing Next aliases are also supported:
 
 Configure each station with its shortcode, display name, AzuraCast server URL, public-page theme (dark or light), artwork preference and optional custom CSS.
 
-The plugin uses public AzuraCast endpoints and does not require an API key in the browser. The station URL may include a reverse-proxy subdirectory.
+The plugin uses public AzuraCast endpoints and does not require an API key in the browser. The station URL may include a reverse-proxy subdirectory. The `[azura_history]` shortcode embeds AzuraCast's official History page; the Gutenberg History block instead renders a native list and lets you limit how many returned history entries are displayed.
 
 == Logs ==
 
@@ -62,7 +62,7 @@ location ^~ /wp-content/uploads/azuracast-logs/ {
 == Changelog ==
 
 = 1.4.0 =
-* Added dynamic Gutenberg blocks for all eight station components.
+* Added dynamic Gutenberg blocks for all eight station components; the History block renders a native recent-track list with a configurable limit while the legacy History shortcode retains the official AzuraCast iframe.
 * Added an administrator-only station connection test, per-station health history and a sanitized diagnostics export.
 * Added listener-count and Live DJ/AutoDJ display components.
 * Shared the Now Playing REST snapshot and WebSocket connection across live components for each station, while keeping multiple stations isolated.

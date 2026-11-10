@@ -66,17 +66,22 @@ final class AZNS_Blocks {
                         'default' => 10,
                     ],
                 ],
-                'render_callback' => function ($attributes) use ($shortcode_tag) {
+                'render_callback' => function ($attributes) use ($shortcode_tag, $block_name) {
                     $attributes = is_array($attributes) ? $attributes : [];
                     $raw_station = $attributes['station'] ?? '';
                     $station = is_scalar($raw_station) ? sanitize_title((string) $raw_station) : '';
                     $raw_limit = $attributes['limit'] ?? 10;
                     $limit = is_numeric($raw_limit) ? (int) $raw_limit : 10;
 
-                    return $this->shortcodes->render([
+                    $render_attributes = [
                         'station' => $station,
                         'limit' => max(1, min(50, $limit)),
-                    ], '', $shortcode_tag);
+                    ];
+                    if ($block_name === 'azns/history') {
+                        $render_attributes['native'] = true;
+                    }
+
+                    return $this->shortcodes->render($render_attributes, '', $shortcode_tag);
                 },
             ]);
         }

@@ -69,7 +69,7 @@ function createHarness(fetchImpl, type = 'next', art = false, extraWidgets = [])
             id,
             dataset: { type: definition.type || 'next', limit: String(definition.limit || 10) },
             querySelector(selector) {
-                if (selector === '.azns-next' || selector === '.azns-indicator' || selector === '.azns-current') return target;
+                if (selector === '.azns-next' || selector === '.azns-indicator' || selector === '.azns-current' || selector === '.azns-history') return target;
                 if (selector === '.azns-status') return status;
                 return null;
             },
@@ -401,4 +401,21 @@ test('keeps a shared WebSocket alive until the final component unsubscribes', as
     assert.equal(harness.sockets[0].closed, false, 'One remaining component must keep the shared connection alive.');
     harness.states[1].widget._aznsClose();
     assert.equal(harness.sockets[0].closed, true, 'The connection should close after its last component unsubscribes.');
+});
+
+
+test('renders only the configured number of recent history entries', async () => {
+    const harness = createHarness(async () => response({
+        song_history: [
+            { song: { artist: 'Artist One', title: 'First Track' } },
+            { song: { artist: 'Artist Two', title: 'Second Track' } },
+            { song: { artist: 'Artist Three', title: 'Third Track' } },
+        ],
+    }), 'history');
+    harness.widget.dataset.limit = '2';
+    await flushPromises();
+
+    assert.match(harness.target.textContent, /Artist One — First Track/);
+    assert.match(harness.target.textContent, /Artist Two — Second Track/);
+    assert.doesNotMatch(harness.target.textContent, /Artist Three — Third Track/);
 });

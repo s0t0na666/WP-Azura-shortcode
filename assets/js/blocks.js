@@ -42,9 +42,9 @@
         {
             name: 'azns/history',
             title: 'AzuraCast History',
-            description: 'Embed the official AzuraCast playback history.',
+            description: 'Show recent tracks reported by AzuraCast.',
             icon: 'list-view',
-            preview: 'The official AzuraCast history is rendered on the published page.',
+            preview: 'A WordPress-rendered list of recent station tracks is shown on the published page.',
             hasLimit: true,
         },
         {
@@ -104,10 +104,11 @@
                 if (definition.hasLimit) {
                     controls.push(createElement(RangeControl, {
                         key: 'limit',
-                        label: 'Number of history entries',
+                        label: 'Maximum history entries',
                         value: props.attributes.limit || 10,
                         min: 1,
                         max: 50,
+                        help: 'AzuraCast may return fewer entries according to the station API history setting.',
                         onChange: value => props.setAttributes({ limit: value }),
                     }));
                 }
