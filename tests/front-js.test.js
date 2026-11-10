@@ -55,36 +55,45 @@ function response(data) {
     };
 }
 
-function createHarness(fetchImpl, type = 'next', art = false) {
+function createHarness(fetchImpl, type = 'next', art = false, extraWidgets = []) {
     const sockets = [];
     const timers = [];
     let nextTimerId = 0;
-    const target = new FakeElement('div');
-    const status = new FakeElement('small');
-    const widget = {
-        id: 'azns-test',
-        dataset: { type, limit: '10' },
-        querySelector(selector) {
-            if (selector === '.azns-next' || selector === '.azns-indicator' || selector === '.azns-current') return target;
-            if (selector === '.azns-status') return status;
-            return null;
-        },
-    };
+    const definitions = [{ id: 'azns-test', type, art, shortcode: 'test_station' }, ...extraWidgets];
+    const states = definitions.map((definition, index) => {
+        const id = definition.id || 'azns-test-' + (index + 1);
+        const shortcode = definition.shortcode || 'test_station';
+        const target = new FakeElement('div');
+        const status = new FakeElement('small');
+        const widget = {
+            id,
+            dataset: { type: definition.type || 'next', limit: String(definition.limit || 10) },
+            querySelector(selector) {
+                if (selector === '.azns-next' || selector === '.azns-indicator' || selector === '.azns-current') return target;
+                if (selector === '.azns-status') return status;
+                return null;
+            },
+        };
+        return { id, shortcode, target, status, widget, art: definition.art ?? false, definition };
+    });
 
     const document = {
         readyState: 'complete',
         createElement: tagName => new FakeElement(tagName),
-        querySelectorAll: () => [widget],
+        querySelectorAll: () => states.map(state => state.widget),
     };
+    const configurations = {};
+    states.forEach(state => {
+        const definition = state.definition;
+        configurations[state.id] = {
+            server: definition.server || 'https://radio.example.test/radio-proxy',
+            shortcode: state.shortcode,
+            rest: definition.rest || '/wp-json/azns/v1/station/' + state.shortcode + '/',
+            art: state.art,
+        };
+    });
     const window = {
-        AZNS: {
-            'azns-test': {
-                server: 'https://radio.example.test/radio-proxy',
-                shortcode: 'test_station',
-                rest: '/wp-json/azns/v1/station/test_station/',
-                art,
-            },
-        },
+        AZNS: configurations,
         addEventListener() {},
     };
 
@@ -92,6 +101,7 @@ function createHarness(fetchImpl, type = 'next', art = false) {
         constructor(url) {
             this.url = url;
             this.sent = [];
+            this.closed = false;
             sockets.push(this);
         }
 
@@ -99,7 +109,9 @@ function createHarness(fetchImpl, type = 'next', art = false) {
             this.sent.push(value);
         }
 
-        close() {}
+        close() {
+            this.closed = true;
+        }
     }
 
     const sandbox = {
@@ -121,7 +133,14 @@ function createHarness(fetchImpl, type = 'next', art = false) {
     };
 
     vm.runInNewContext(source, sandbox, { filename: 'front.js' });
-    return { target, status, sockets, widget, timers };
+    return {
+        target: states[0].target,
+        status: states[0].status,
+        widget: states[0].widget,
+        sockets,
+        timers,
+        states,
+    };
 }
 
 function nextData(title, artist = 'Test Artist') {
@@ -299,4 +318,79 @@ test('shows an unavailable status when the AzuraCast API cannot be reached', asy
 
     assert.equal(harness.status.textContent, 'Unable to load nowplaying');
     assert.equal(harness.status.hidden, false);
+});
+
+
+test('shares one REST snapshot and one WebSocket across components for the same station', async () => {
+    let fetchCount = 0;
+    const harness = createHarness(async () => {
+        fetchCount += 1;
+        return response({
+            playing_next: { song: { artist: 'Shared Artist', title: 'Shared Snapshot' } },
+            listeners: { current: 14 },
+            live: { is_live: true, streamer_name: 'Shared DJ' },
+            now_playing: { song: { artist: 'Current Artist', title: 'Current Track' } },
+        });
+    }, 'next', false, [
+        { type: 'listeners' },
+        { type: 'broadcast' },
+        { type: 'now-playing' },
+    ]);
+    await flushPromises();
+
+    assert.equal(fetchCount, 1, 'Widgets for one station should share a single initial REST request.');
+    assert.equal(harness.sockets.length, 1, 'Widgets for one station should share a single WebSocket.');
+    assert.match(harness.states[0].target.textContent, /Shared Artist - Shared Snapshot/);
+    assert.match(harness.states[1].target.textContent, /14 listening/);
+    assert.match(harness.states[2].target.textContent, /Live DJ — Shared DJ/);
+    assert.match(harness.states[3].target.textContent, /Current Artist - Current Track/);
+
+    harness.sockets[0].onmessage({
+        data: JSON.stringify({
+            pub: {
+                data: {
+                    np: {
+                        playing_next: { song: { artist: 'Live Artist', title: 'Live Update' } },
+                        listeners: { current: 21 },
+                        live: { is_live: false },
+                        now_playing: { song: { artist: 'Current Artist', title: 'Live Track' } },
+                    },
+                },
+            },
+        }),
+    });
+
+    assert.match(harness.states[0].target.textContent, /Live Artist - Live Update/);
+    assert.match(harness.states[1].target.textContent, /21 listening/);
+    assert.match(harness.states[2].target.textContent, /AutoDJ/);
+    assert.match(harness.states[3].target.textContent, /Current Artist - Live Track/);
+});
+
+test('keeps separate live connections for different configured stations', async () => {
+    let fetchCount = 0;
+    const harness = createHarness(async () => {
+        fetchCount += 1;
+        return response(nextData('Station snapshot ' + fetchCount));
+    }, 'next', false, [
+        { type: 'listeners', shortcode: 'other_station' },
+    ]);
+    await flushPromises();
+
+    assert.equal(fetchCount, 2);
+    assert.equal(harness.sockets.length, 2);
+    assert.match(harness.sockets[0].url, /test_station/);
+    assert.match(harness.sockets[1].url, /other_station/);
+});
+
+test('keeps a shared WebSocket alive until the final component unsubscribes', async () => {
+    const harness = createHarness(async () => response(nextData('Shared cleanup')), 'next', false, [
+        { type: 'listeners' },
+    ]);
+    await flushPromises();
+
+    assert.equal(harness.sockets.length, 1);
+    harness.states[0].widget._aznsClose();
+    assert.equal(harness.sockets[0].closed, false, 'One remaining component must keep the shared connection alive.');
+    harness.states[1].widget._aznsClose();
+    assert.equal(harness.sockets[0].closed, true, 'The connection should close after its last component unsubscribes.');
 });
