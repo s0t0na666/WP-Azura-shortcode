@@ -55,11 +55,11 @@ function response(data) {
     };
 }
 
-function createHarness(fetchImpl, type = 'next', art = false, extraWidgets = []) {
+function createHarness(fetchImpl, type = 'next', art = false, extraWidgets = [], initialLimit = 10) {
     const sockets = [];
     const timers = [];
     let nextTimerId = 0;
-    const definitions = [{ id: 'azns-test', type, art, shortcode: 'test_station' }, ...extraWidgets];
+    const definitions = [{ id: 'azns-test', type, art, shortcode: 'test_station', limit: initialLimit }, ...extraWidgets];
     const states = definitions.map((definition, index) => {
         const id = definition.id || 'azns-test-' + (index + 1);
         const shortcode = definition.shortcode || 'test_station';
@@ -411,8 +411,7 @@ test('renders only the configured number of recent history entries', async () =>
             { song: { artist: 'Artist Two', title: 'Second Track' } },
             { song: { artist: 'Artist Three', title: 'Third Track' } },
         ],
-    }), 'history');
-    harness.widget.dataset.limit = '2';
+    }), 'history', false, [], 2);
     await flushPromises();
 
     assert.match(harness.target.textContent, /Artist One — First Track/);
