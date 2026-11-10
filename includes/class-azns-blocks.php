@@ -15,6 +15,7 @@ final class AZNS_Blocks {
         'azns/history' => 'azura_history',
         'azns/podcasts' => 'azura_podcasts',
         'azns/schedule' => 'azura_schedule',
+        'azns/upcoming-show' => 'azura_upcoming_show',
         'azns/listeners' => 'azura_listeners',
         'azns/broadcast-mode' => 'azura_broadcast_mode',
     ];

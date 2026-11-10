@@ -84,12 +84,13 @@ $expected = [
     'azns/history' => 'azura_history',
     'azns/podcasts' => 'azura_podcasts',
     'azns/schedule' => 'azura_schedule',
+    'azns/upcoming-show' => 'azura_upcoming_show',
     'azns/listeners' => 'azura_listeners',
     'azns/broadcast-mode' => 'azura_broadcast_mode',
 ];
 
 $registered = $GLOBALS['azns_block_test_registered'];
-azns_block_assert(array_keys($registered) === array_keys($expected), 'All eight dynamic Gutenberg blocks must register in the defined order.');
+azns_block_assert(array_keys($registered) === array_keys($expected), 'All nine dynamic Gutenberg blocks must register in the defined order.');
 azns_block_assert(isset($GLOBALS['azns_block_test_scripts']['azns-blocks-editor']), 'The Gutenberg editor bundle must be registered.');
 azns_block_assert(
     $GLOBALS['azns_block_test_scripts']['azns-blocks-editor']['deps'] === ['wp-blocks', 'wp-element', 'wp-components', 'wp-block-editor'],

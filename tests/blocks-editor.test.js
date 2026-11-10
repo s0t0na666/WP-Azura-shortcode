@@ -37,7 +37,7 @@ function createHarness() {
     return registered;
 }
 
-test('registers all eight dynamic AzuraCast blocks', () => {
+test('registers all nine dynamic AzuraCast blocks', () => {
     const registered = createHarness();
     assert.deepEqual(Object.keys(registered).sort(), [
         'azns/broadcast-mode',
@@ -48,6 +48,7 @@ test('registers all eight dynamic AzuraCast blocks', () => {
         'azns/playing-next',
         'azns/podcasts',
         'azns/schedule',
+        'azns/upcoming-show',
     ]);
     for (const block of Object.values(registered)) {
         assert.equal(block.category, 'widgets');

@@ -86,7 +86,8 @@ azns_shortcode_assert(
     isset($GLOBALS['azns_shortcode_test_registered']['azura_nowplaying'])
         && isset($GLOBALS['azns_shortcode_test_registered']['azura_next_track'])
         && isset($GLOBALS['azns_shortcode_test_registered']['azura_listeners'])
-        && isset($GLOBALS['azns_shortcode_test_registered']['azura_broadcast_mode']),
+        && isset($GLOBALS['azns_shortcode_test_registered']['azura_broadcast_mode'])
+        && isset($GLOBALS['azns_shortcode_test_registered']['azura_upcoming_show']),
     'The existing and new public shortcode tags must be registered.'
 );
 
@@ -102,6 +103,14 @@ azns_shortcode_assert(strpos($next, 'data-type="next"') !== false, 'Playing Next
 azns_shortcode_assert(
     strpos($next, 'class="azns-next" aria-live="polite" aria-atomic="true"') !== false,
     'Playing Next metadata must be exposed as an atomic polite live region.'
+);
+
+$upcoming = $shortcodes->render([], '', 'azura_upcoming_show');
+azns_shortcode_assert(
+    strpos($upcoming, 'data-type="upcoming"') !== false
+        && strpos($upcoming, '<div class="azns-upcoming" aria-live="polite" aria-atomic="true"></div>') !== false
+        && strpos($upcoming, '<iframe') === false,
+    'The Upcoming Show shortcode must render a native component that loads public schedule data.'
 );
 
 $listeners = $shortcodes->render([], '', 'azura_listeners');

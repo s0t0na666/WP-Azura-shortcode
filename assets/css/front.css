@@ -16,3 +16,7 @@
 .azns-indicator-value{font-size:1.25em;font-weight:700;line-height:1.35}
 
 .azns-art-placeholder{display:inline-flex;flex:0 0 72px;width:72px;height:72px;align-items:center;justify-content:center;padding:6px;border-radius:8px;background:var(--panel);color:var(--muted);font-size:.75em;text-align:center;border:1px dashed currentColor}
+
+.azns-upcoming-label{display:block;color:var(--accent);font-size:.78em;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.azns-upcoming-title{display:block;margin-top:5px}
+.azns-upcoming-time{display:block;margin-top:8px;color:var(--muted);font-size:.9em}

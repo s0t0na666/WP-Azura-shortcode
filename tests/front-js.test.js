@@ -69,7 +69,7 @@ function createHarness(fetchImpl, type = 'next', art = false, extraWidgets = [],
             id,
             dataset: { type: definition.type || 'next', limit: String(definition.limit || 10) },
             querySelector(selector) {
-                if (selector === '.azns-next' || selector === '.azns-indicator' || selector === '.azns-current' || selector === '.azns-history') return target;
+                if (selector === '.azns-next' || selector === '.azns-indicator' || selector === '.azns-current' || selector === '.azns-history' || selector === '.azns-upcoming') return target;
                 if (selector === '.azns-status') return status;
                 return null;
             },
@@ -417,4 +417,66 @@ test('renders only the configured number of recent history entries', async () =>
     assert.match(harness.target.textContent, /Artist One — First Track/);
     assert.match(harness.target.textContent, /Artist Two — Second Track/);
     assert.doesNotMatch(harness.target.textContent, /Artist Three — Third Track/);
+});
+
+
+test('renders the next scheduled show from AzuraCast schedule data, not the current item', async () => {
+    const requests = [];
+    const startTimestamp = 1794247200;
+    const harness = createHarness(async url => {
+        requests.push(url);
+        return response([
+            {
+                type: 'streamer',
+                title: 'Current DJ',
+                name: 'Current DJ',
+                is_now: true,
+                start: '2026-11-10T15:00:00+01:00',
+                start_timestamp: 1794328800,
+            },
+            {
+                type: 'streamer',
+                title: 'Next DJ',
+                name: 'Next DJ',
+                description: 'Upcoming live set',
+                is_now: false,
+                start: '2026-11-10T18:00:00+01:00',
+                start_timestamp: startTimestamp,
+            },
+        ]);
+    }, 'upcoming');
+    await flushPromises();
+
+    assert.deepEqual(requests, ['/wp-json/azns/v1/station/test_station/schedule']);
+    assert.match(harness.target.textContent, /Next live show/);
+    assert.match(harness.target.textContent, /Next DJ/);
+    assert.match(harness.target.textContent, /Upcoming live set/);
+    assert.doesNotMatch(harness.target.textContent, /Current DJ/);
+    const time = harness.target.children[0].children.find(child => child.tagName === 'time');
+    assert.ok(time, 'The schedule entry start time should be displayed.');
+    assert.equal(time.dateTime, '2026-11-10T18:00:00+01:00');
+    assert.equal(harness.sockets.length, 0, 'Upcoming Show uses the schedule endpoint, not the Now Playing WebSocket.');
+});
+
+test('shows the current scheduled entry when AzuraCast has no future entry', async () => {
+    const harness = createHarness(async () => response([
+        {
+            type: 'streamer',
+            title: 'Live Now',
+            is_now: true,
+            start: '2026-11-10T15:00:00+01:00',
+            start_timestamp: 1794328800,
+        },
+    ]), 'upcoming');
+    await flushPromises();
+
+    assert.match(harness.target.textContent, /On air now/);
+    assert.match(harness.target.textContent, /Live Now/);
+});
+
+test('shows an explicit empty state when AzuraCast has no schedule entries', async () => {
+    const harness = createHarness(async () => response([]), 'upcoming');
+    await flushPromises();
+
+    assert.match(harness.target.textContent, /No upcoming show is scheduled/);
 });

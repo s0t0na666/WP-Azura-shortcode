@@ -145,6 +145,60 @@
         });
     }
 
+    function renderUpcomingShow(widget, entries) {
+        const target = widget.querySelector('.azns-upcoming');
+        if (!target) return;
+        target.replaceChildren();
+
+        if (!Array.isArray(entries) || entries.length === 0) {
+            target.append(make('p', '', 'No upcoming show is scheduled.'));
+            return;
+        }
+
+        // AzuraCast returns ongoing and future entries in schedule order.
+        // Prefer the first future entry; fall back to the current entry when no future one exists.
+        const upcoming = entries.find(item => item && item.is_now === false);
+        const current = entries.find(item => item && item.is_now === true);
+        const selected = upcoming || current;
+        if (!selected) {
+            target.append(make('p', '', 'No upcoming show is scheduled.'));
+            return;
+        }
+
+        const card = make('article', 'azns-item azns-upcoming-card');
+        const label = selected.is_now === true
+            ? 'On air now'
+            : (selected.type === 'streamer' ? 'Next live show' : (selected.type === 'playlist' ? 'Next playlist' : 'Up next'));
+        card.append(make('small', 'azns-upcoming-label azns-live', label));
+        card.append(make('strong', 'azns-upcoming-title', selected.title || selected.name || 'Untitled schedule entry'));
+        if (selected.description) card.append(make('p', '', selected.description));
+
+        const rawTimestamp = selected.start_timestamp;
+        const timestamp = (typeof rawTimestamp === 'number' || (typeof rawTimestamp === 'string' && rawTimestamp.trim() !== ''))
+            ? Number(rawTimestamp)
+            : NaN;
+        let startDate = Number.isFinite(timestamp) && timestamp > 0
+            ? new Date(timestamp * 1000)
+            : null;
+        if ((!startDate || !Number.isFinite(startDate.getTime())) && typeof selected.start === 'string') {
+            const parsed = new Date(selected.start);
+            if (Number.isFinite(parsed.getTime())) startDate = parsed;
+        }
+        if (startDate && Number.isFinite(startDate.getTime())) {
+            const time = make('time', 'azns-upcoming-time');
+            time.dateTime = (typeof selected.start === 'string' && selected.start.trim())
+                ? selected.start
+                : startDate.toISOString();
+            time.textContent = startDate.toLocaleString(undefined, {
+                dateStyle: 'medium',
+                timeStyle: 'short',
+            });
+            card.append(time);
+        }
+
+        target.append(card);
+    }
+
     // Components for the same station share one snapshot request and one live WebSocket.
     const stationFeeds = new Map();
 
@@ -366,15 +420,16 @@
                 if (resource === 'podcasts') {
                     renderPodcastList(widget, data, config);
                 } else if (resource === 'schedule') {
-                    renderSchedule(widget, data);
+                    if (type === 'upcoming') renderUpcomingShow(widget, data);
+                    else renderSchedule(widget, data);
                 }
             } catch (error) {
                 if (active) setStatus('Unable to load ' + resource);
             }
         };
 
-        if (type === 'podcasts' || type === 'schedule') {
-            load(type);
+        if (type === 'podcasts' || type === 'schedule' || type === 'upcoming') {
+            load(type === 'upcoming' ? 'schedule' : type);
             return;
         }
 

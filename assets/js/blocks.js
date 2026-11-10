@@ -62,6 +62,13 @@
             preview: 'The official AzuraCast schedule is rendered on the published page.',
         },
         {
+            name: 'azns/upcoming-show',
+            title: 'AzuraCast Upcoming Show',
+            description: 'Show the next scheduled streamer or playlist from AzuraCast.',
+            icon: 'clock',
+            preview: 'The next schedule entry reported by AzuraCast is rendered on the published page.',
+        },
+        {
             name: 'azns/listeners',
             title: 'AzuraCast Listener Count',
             description: 'Show the current listener count reported by AzuraCast.',
