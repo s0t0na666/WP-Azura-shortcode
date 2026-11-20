@@ -1,0 +1,201 @@
+.azns-admin {
+    max-width: 1120px;
+}
+
+.azns-admin [hidden] {
+    display: none;
+}
+
+.azns-admin-heading,
+.azns-admin-section-heading,
+.azns-admin-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.azns-admin-heading {
+    margin: 12px 0 22px;
+}
+
+.azns-admin-heading h1,
+.azns-admin-heading p,
+.azns-admin-section-heading h2,
+.azns-admin-section-heading h3 {
+    margin: 0;
+}
+
+.azns-admin-heading p {
+    margin-top: 6px;
+    color: #50575e;
+}
+
+.azns-admin-panel {
+    box-sizing: border-box;
+    margin: 0 0 16px;
+    padding: 20px;
+    border: 1px solid #dcdcde;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.azns-admin-panel h2 {
+    margin: 0 0 12px;
+    font-size: 16px;
+}
+
+.azns-admin-default label,
+.azns-admin-fields > label {
+    display: block;
+    font-weight: 600;
+}
+
+.azns-admin-default select {
+    margin-top: 6px;
+    max-width: 100%;
+}
+
+.azns-admin-default + .azns-admin-section-heading {
+    margin: 20px 0 12px;
+}
+
+.azns-admin-station .azns-admin-section-heading {
+    margin-bottom: 16px;
+}
+
+.azns-admin-badge {
+    border-radius: 16px;
+    padding: 3px 9px;
+    background: #e5f5fa;
+    color: #00576a;
+    font-weight: 600;
+}
+
+.azns-admin-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: end;
+    gap: 14px 20px;
+}
+
+.azns-admin-fields .azns-admin-wide {
+    grid-column: 1 / -1;
+}
+
+.azns-admin-fields input[type="text"],
+.azns-admin-fields select,
+.azns-admin-fields textarea {
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    max-width: none;
+    margin: 6px 0 0;
+    font-weight: 400;
+}
+
+.azns-admin-fields textarea,
+.azns-admin-copy code {
+    font-family: Consolas, Monaco, monospace;
+}
+
+.azns-admin-appearance,
+.azns-admin-station-footer {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid #e4e4e7;
+}
+
+.azns-admin summary {
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.azns-admin-appearance .azns-admin-fields {
+    margin-top: 14px;
+}
+
+.azns-admin-fields .azns-admin-checkbox,
+.azns-admin-clear .azns-admin-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 30px;
+}
+
+.azns-admin-checkbox input {
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.azns-admin-actions {
+    justify-content: flex-end;
+}
+
+.azns-admin-shortcode {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    align-items: center;
+    gap: 12px 24px;
+    padding: 14px 0;
+    border-top: 1px solid #e4e4e7;
+}
+
+.azns-admin-shortcode h3,
+.azns-admin-shortcode p {
+    margin: 0;
+}
+
+.azns-admin-shortcode p {
+    margin-top: 4px;
+    color: #50575e;
+}
+
+.azns-admin-copy {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+}
+
+.azns-admin-copy code {
+    flex: 1 1 230px;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    padding: 8px 10px;
+    background: #f6f7f7;
+    overflow-wrap: anywhere;
+    user-select: all;
+}
+
+.azns-admin-log {
+    max-height: 28rem;
+    padding: 14px;
+    overflow: auto;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    background: #f6f7f7;
+}
+
+.azns-admin-clear {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid #e4e4e7;
+}
+
+@media (max-width: 782px) {
+    .azns-admin-panel {
+        padding: 14px;
+    }
+
+    .azns-admin-fields,
+    .azns-admin-shortcode {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

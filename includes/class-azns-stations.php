@@ -20,7 +20,7 @@ final class AZNS_Stations {
         if (!is_array($validated) || empty($validated['host'])) return '';
         return untrailingslashit($url);
     }
-    public function all() {
+    public function all($use_shortcode_as_name = true) {
         $settings = get_option(self::OPT, []);
         if (!is_array($settings) || !isset($settings['stations']) || !is_array($settings['stations'])) return [];
         $stations = [];
@@ -38,7 +38,7 @@ final class AZNS_Stations {
             $raw_css = $row['css'] ?? '';
             $css = is_scalar($raw_css) ? sanitize_textarea_field((string) $raw_css) : '';
             $stations[$shortcode] = [
-                'name' => ($name !== '') ? $name : $shortcode,
+                'name' => ($name === '' && $use_shortcode_as_name) ? $shortcode : $name,
                 'url' => $server, 'shortcode' => $shortcode, 'theme' => $theme,
                 'css' => $css, 'art' => !empty($row['art']),
             ];

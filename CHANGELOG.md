@@ -1,6 +1,12 @@
 # Changelog
 
-## 1.4.1 — Maintenance release candidate
+## 1.5.0 — Admin redesign candidate
+
+- Replaced the stations table with responsive station cards.
+- Added a shortcode reference with a station selector, copy controls, and grouped examples.
+- Separated diagnostic export and log management and added confirmation before clearing logs.
+
+## 1.4.1 — Maintenance release
 
 - Removed the manual administrator connection test and its station health indicators. Sanitized diagnostics continue to include station configuration and recent logs.
 - Added loading and connection status to Playing Next and recovery for WebSocket connections that stop delivering updates.
