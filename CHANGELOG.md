@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.5.0 — Admin redesign candidate
+## 1.5.0 — Admin redesign
 
 - Replaced the stations table with responsive station cards.
 - Added a shortcode reference with a station selector, copy controls, and grouped examples.
