@@ -27,7 +27,7 @@ final class AZNS {
         $this->api = new AZNS_API($this->stations);
         $shortcodes = new AZNS_Shortcodes($this->stations, $this->api);
         new AZNS_Blocks($this->stations, $shortcodes);
-        new AZNS_Admin($this->stations, $this->api);
+        new AZNS_Admin($this->stations);
 
         add_action('wp_enqueue_scripts', function () {
             wp_register_style('azns', AZNS_URL . 'assets/css/front.css', [], AZNS_VER);
