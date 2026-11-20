@@ -52,7 +52,8 @@ Staging verification on WordPress 7.1.4 and PHP 8.1.34 confirmed the PR #4 candi
 
 - [ ] Verify how live widgets recover after temporary network loss and browser back/forward navigation with two real stations. Confirm each station shares one WebSocket and refreshes its own REST snapshot on reconnect.
 - [ ] Check keyboard navigation and screen-reader announcements in the station settings, editor and frontend. Include track changes and empty or unavailable data.
-- [ ] Check actual frontend asset loading on pages with no components, iframe-only embeds and native blocks. Address any unnecessary requests found during testing.
+- [x] Inspect the HTML of published staging pages for conditional asset delivery. The mixed component page, `/elementor-2326/`, includes the frontend CSS and JS. Five pages without AzuraCast Suite components omit both references.
+- [ ] Verify browser asset requests on an isolated iframe-only page and an isolated native Gutenberg block page.
 
 ### Priority 2 — documentation and builder integrations
 
