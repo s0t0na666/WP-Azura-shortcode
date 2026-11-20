@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.4.1 — Maintenance release candidate
 
 - Removed the manual administrator connection test and its station health indicators. Sanitized diagnostics continue to include station configuration and recent logs.
 - Added loading and connection status to Playing Next and recovery for WebSocket connections that stop delivering updates.

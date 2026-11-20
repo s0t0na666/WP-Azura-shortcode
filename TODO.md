@@ -25,7 +25,7 @@ The user confirmed that all functionality has been tested successfully. GitHub A
 
 Staging validation confirmed by the maintainer: the plugin connects to AzuraCast stations and renders components through shortcodes.
 
-## Proposed follow-up
+## 1.4.1 release candidate
 
 The post-release source audit covered the `v1.4.0` tag and the admin changes in [PR #4](https://github.com/s0t0na666/WP-Azura-shortcode/pull/4).
 
@@ -36,7 +36,8 @@ The post-release source audit covered the `v1.4.0` tag and the admin changes in 
 - [ ] Exercise all nine blocks in the editor and frontend, including History limits and Upcoming Show with an empty schedule. Record verified WordPress and PHP versions.
 - [x] Make the Plugin Check job discover the generated ZIP.
 - [x] Build and inspect the installable ZIP locally with PHP 8.2.
-- [x] Confirm CI generated the installable artifact and WordPress Plugin Check passed.
+- [x] Confirm CI generated the installable artifact and WordPress Plugin Check passed for the original PR #4 staging build.
+- [ ] Confirm CI and the versioned ZIP for the 1.4.1 candidate.
 
 Staging verification on WordPress 7.1.4 and PHP 8.1.34 confirmed the PR #4 candidate is active, the default station is still `mugadavanje`, and all nine Gutenberg blocks return HTML through the authenticated block renderer. History renders the requested limit of 3. Live WordPress-to-AzuraCast checks are deferred due to the hosting DNS issue. Interactive editor and frontend checks remain open.
 
@@ -53,7 +54,8 @@ Staging verification on WordPress 7.1.4 and PHP 8.1.34 confirmed the PR #4 candi
 - [ ] Verify how live widgets recover after temporary network loss and browser back/forward navigation with two real stations. Confirm each station shares one WebSocket and refreshes its own REST snapshot on reconnect.
 - [ ] Check keyboard navigation and screen-reader announcements in the station settings, editor and frontend. Include track changes and empty or unavailable data.
 - [x] Inspect the HTML of published staging pages for conditional asset delivery. The mixed component page, `/elementor-2326/`, includes the frontend CSS and JS. Five pages without AzuraCast Suite components omit both references.
-- [ ] Verify browser asset requests on an isolated iframe-only page and an isolated native Gutenberg block page.
+- [x] Maintainer confirmed staging components and assets load correctly.
+- [ ] Capture browser network requests on isolated iframe-only and native Gutenberg test pages.
 
 ### Priority 2 — documentation and builder integrations
 
