@@ -48,6 +48,7 @@ jobs:
         run: |
           node --check assets/js/front.js
           node --check assets/js/blocks.js
+          node --check assets/js/admin.js
       - name: Run frontend regression tests
         run: node --test tests/*.test.js
 

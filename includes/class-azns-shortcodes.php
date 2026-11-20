@@ -4,9 +4,29 @@ if (!defined('ABSPATH')) { exit; }
 final class AZNS_Shortcodes {
     private $stations;
 
+    public const CATALOG = [
+        'Player & history' => [
+            'azura_player' => ['Player', 'Embed the AzuraCast radio player.'],
+            'azura_history' => ['History', 'Embed recently played tracks. Use the Gutenberg History block for a configurable track limit.'],
+        ],
+        'Live information' => [
+            'azura_nowplaying' => ['Now Playing', 'Display the current track.'],
+            'azura_next_track' => ['Playing Next', 'Display the next track when available.'],
+            'azura_listeners' => ['Listener Count', 'Display the current listener count.'],
+            'azura_broadcast_mode' => ['Broadcast Mode', 'Show whether the station is live or using AutoDJ.'],
+        ],
+        'Podcasts & schedule' => [
+            'azura_podcasts' => ['Podcasts', 'Embed the AzuraCast podcast list.'],
+            'azura_schedule' => ['Schedule', 'Embed the station’s broadcast schedule.'],
+            'azura_upcoming_show' => ['Upcoming Show', 'Display the next scheduled show.'],
+        ],
+    ];
+    public const LEGACY_TAGS = ['azuracast_playing_next', 'azura_playing_next'];
+
     public function __construct($stations, $api) {
         $this->stations = $stations;
-        foreach (['azura_player', 'azura_nowplaying', 'azura_next_track', 'azura_history', 'azura_podcasts', 'azura_schedule', 'azura_upcoming_show', 'azura_listeners', 'azura_broadcast_mode', 'azuracast_playing_next', 'azura_playing_next'] as $tag) {
+        $tags = array_merge(...array_map('array_keys', array_values(self::CATALOG)));
+        foreach (array_merge($tags, self::LEGACY_TAGS) as $tag) {
             add_shortcode($tag, [$this, 'render']);
         }
     }
