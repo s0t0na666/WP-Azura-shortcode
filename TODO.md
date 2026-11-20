@@ -36,7 +36,9 @@ The post-release source audit covered the `v1.4.0` tag and the admin changes in 
 - [ ] Exercise all nine blocks in the editor and frontend, including History limits and Upcoming Show with an empty schedule. Record verified WordPress and PHP versions.
 - [x] Make the Plugin Check job discover the generated ZIP.
 - [x] Build and inspect the installable ZIP locally with PHP 8.2.
-- [ ] Verify the CI artifact and run WordPress Plugin Check.
+- [x] Confirm CI generated the installable artifact and WordPress Plugin Check passed.
+
+Staging verification on WordPress 7.1.4 and PHP 8.1.34 confirmed the PR #4 candidate is active, the default station is still `mugadavanje`, and all nine Gutenberg blocks return HTML through the authenticated block renderer. History renders the requested limit of 3. Live WordPress-to-AzuraCast checks are deferred due to the hosting DNS issue. Interactive editor and frontend checks remain open.
 
 ### Priority 1 — reliability and accessibility
 
