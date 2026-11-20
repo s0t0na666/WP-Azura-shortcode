@@ -1,6 +1,15 @@
 # Changelog
 
-## 1.4.0 — WordPress-native components and administration (development)
+## 1.4.1 — Maintenance release candidate
+
+- Removed the manual administrator connection test and its station health indicators. Sanitized diagnostics continue to include station configuration and recent logs.
+- Added loading and connection status to Playing Next and recovery for WebSocket connections that stop delivering updates.
+- Refreshed Upcoming Show every five minutes through a shared request per station and skipped malformed track history entries.
+- Kept the default station selector in sync with unsaved station edits and updated the shortcode reference.
+- Bounded diagnostic logs to two 1 MiB files and added an optional private log directory.
+- Added accessible names and keyboard focus handling to station settings.
+
+## 1.4.0 — WordPress-native components and administration
 
 - Added nine dynamic Gutenberg blocks for Player, Now Playing, Playing Next, History, Podcasts, Schedule, Upcoming Show, Listener Count and Broadcast Mode.
 - Made the Gutenberg History limit functional with a native `song_history` list while preserving the existing History shortcode's official AzuraCast iframe behavior.
@@ -16,8 +25,6 @@
 - Added PHP CLI regression coverage for station configuration, URL validation, API resource allow-listing, endpoint construction, cache TTLs, malformed responses and REST proxy status handling.
 - Added the official WordPress Plugin Check workflow for clean release archives (general, security, performance and accessibility categories).
 - Tightened station URL validation to reject numeric-only hosts.
-
-> This section describes development work on the development branch; it is not a published release. Live WordPress/AzuraCast integration testing remains part of the 1.4.0 release acceptance checklist.
 
 ## 1.3.4 — Playing Next reliability and automated checks
 

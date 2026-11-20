@@ -201,6 +201,15 @@
 
     // Components for the same station share one snapshot request and one live WebSocket.
     const stationFeeds = new Map();
+    const upcomingFeeds = new Map();
+    const LIVE_DATA_TIMEOUT = 90000;
+    const SCHEDULE_REFRESH_INTERVAL = 300000;
+
+    function isNowPlaying(data) {
+        return data && typeof data === 'object' && !Array.isArray(data)
+            && ['now_playing', 'playing_next', 'song_history', 'listeners', 'live']
+                .some(field => Object.hasOwn(data, field));
+    }
 
     function stationFeedKey(config) {
         try {
@@ -217,6 +226,7 @@
         let active = false;
         let socket = null;
         let retryTimer = null;
+        let liveDataTimer = null;
         let retryDelay = 1000;
         let realtimeRevision = 0;
         let snapshotSequence = 0;
@@ -242,6 +252,7 @@
                 if (!response.ok) throw new Error('HTTP ' + response.status);
                 const data = await response.json();
                 if (!active || requestId !== snapshotSequence) return;
+                if (!isNowPlaying(data)) throw new Error('Invalid Now Playing data');
                 // A WebSocket publication is newer than any snapshot request already in flight.
                 if (realtimeRevision === revisionAtRequest) publish(data);
             } catch (error) {
@@ -253,13 +264,16 @@
 
         const handlePayload = payload => {
             const data = payload?.data?.np;
-            if (data && typeof data === 'object') {
+            if (isNowPlaying(data)) {
+                retryDelay = 1000;
+                waitForLiveData();
                 realtimeRevision += 1;
                 publish(data);
             }
         };
 
         const scheduleRetry = () => {
+            clearTimeout(liveDataTimer);
             if (!active) return;
             notifyStatus('Connection lost; reconnecting…');
             clearTimeout(retryTimer);
@@ -268,6 +282,19 @@
                 connect();
             }, retryDelay);
             retryDelay = Math.min(retryDelay * 2, 30000);
+        };
+
+        const waitForLiveData = () => {
+            clearTimeout(liveDataTimer);
+            liveDataTimer = setTimeout(() => {
+                if (!active || !socket) return;
+                socket.onclose = null;
+                socket.onerror = null;
+                socket.onopen = null;
+                socket.onmessage = null;
+                socket.close();
+                scheduleRetry();
+            }, LIVE_DATA_TIMEOUT);
         };
 
         const connect = () => {
@@ -283,8 +310,6 @@
             }
 
             socket.onopen = () => {
-                retryDelay = 1000;
-                notifyStatus('');
                 const subscriptions = {};
                 subscriptions['station:' + config.shortcode] = { recover: true };
                 socket.send(JSON.stringify({ subs: subscriptions }));
@@ -306,6 +331,7 @@
             };
             socket.onerror = () => notifyStatus('WebSocket reconnecting');
             socket.onclose = scheduleRetry;
+            waitForLiveData();
         };
 
         return {
@@ -324,6 +350,7 @@
                 if (subscribers.size !== 0) return false;
                 active = false;
                 clearTimeout(retryTimer);
+                clearTimeout(liveDataTimer);
                 if (socket) {
                     socket.onclose = null;
                     socket.onerror = null;
@@ -351,6 +378,43 @@
         };
     }
 
+    function subscribeUpcoming(config, subscriber) {
+        const key = config.rest;
+        let feed = upcomingFeeds.get(key);
+        if (!feed) {
+            feed = { subscribers: new Set(), data: null, timer: null };
+            upcomingFeeds.set(key, feed);
+            const refresh = async () => {
+                try {
+                    const response = await fetch(config.rest + 'schedule', { credentials: 'same-origin' });
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    const data = await response.json();
+                    if (!Array.isArray(data)) throw new Error('Invalid schedule data');
+                    feed.data = data;
+                    feed.subscribers.forEach(render => render(data));
+                } catch (error) {
+                    feed.subscribers.forEach(render => render(null));
+                } finally {
+                    if (feed.subscribers.size) {
+                        feed.timer = setTimeout(refresh, SCHEDULE_REFRESH_INTERVAL);
+                    }
+                }
+            };
+            feed.subscribers.add(subscriber);
+            refresh();
+        } else {
+            feed.subscribers.add(subscriber);
+            if (feed.data) subscriber(feed.data);
+        }
+
+        return () => {
+            feed.subscribers.delete(subscriber);
+            if (feed.subscribers.size) return;
+            clearTimeout(feed.timer);
+            upcomingFeeds.delete(key);
+        };
+    }
+
     function init(widget) {
         const config = configs[widget.id];
         if (!config) return;
@@ -370,7 +434,8 @@
             if (type === 'history') {
                 const list = widget.querySelector('.azns-history');
                 list.replaceChildren();
-                (Array.isArray(data.song_history) ? data.song_history : []).slice(0, limit).forEach(row => {
+                (Array.isArray(data.song_history) ? data.song_history : [])
+                    .filter(row => row?.song && typeof row.song === 'object').slice(0, limit).forEach(row => {
                     list.append(make('li', '', trackLabel(row.song)));
                 });
                 if (!list.children.length) list.append(make('li', '', 'No recent tracks'));
@@ -421,20 +486,31 @@
                 if (resource === 'podcasts') {
                     renderPodcastList(widget, data, config);
                 } else if (resource === 'schedule') {
-                    if (type === 'upcoming') renderUpcomingShow(widget, data);
-                    else renderSchedule(widget, data);
+                    renderSchedule(widget, data);
                 }
             } catch (error) {
                 if (active) setStatus('Unable to load ' + resource);
             }
         };
 
-        if (type === 'podcasts' || type === 'schedule' || type === 'upcoming') {
+        if (type === 'upcoming') {
+            const unsubscribe = subscribeUpcoming(config, data => {
+                setStatus(data ? '' : 'Unable to load schedule');
+                if (data) renderUpcomingShow(widget, data);
+            });
+            widget._aznsClose = () => {
+                unsubscribe();
+                widget._aznsClose = null;
+            };
+            return;
+        }
+
+        if (type === 'podcasts' || type === 'schedule') {
             widget._aznsClose = () => {
                 active = false;
                 widget._aznsClose = null;
             };
-            load(type === 'upcoming' ? 'schedule' : type);
+            load(type);
             return;
         }
 

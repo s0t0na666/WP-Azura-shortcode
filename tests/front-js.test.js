@@ -514,3 +514,47 @@ test('clears the loading status and reloads Upcoming Show after BFCache restorat
     assert.equal(harness.status.hidden, true);
     assert.match(harness.target.textContent, /Restored DJ/);
 });
+
+test('refreshes the REST snapshot when an open socket stops providing valid updates', async () => {
+    let requests = 0;
+    const harness = createHarness(async () => response(nextData('Snapshot ' + ++requests)));
+    const socket = harness.sockets[0];
+    socket.onopen();
+    const watchdog = harness.timers.find(timer => timer.delay === 90000 && !timer.cleared);
+    socket.onmessage({ data: JSON.stringify({ pub: { data: { np: { unexpected: true } } } }) });
+    assert.equal(watchdog.cleared, false);
+
+    watchdog.callback();
+    assert.equal(socket.closed, true);
+    harness.timers.find(timer => timer.delay === 1000 && !timer.cleared).callback();
+    await flushPromises();
+    assert.equal(requests, 2);
+    assert.match(harness.target.textContent, /Snapshot 2/);
+});
+
+test('skips malformed history rows without preventing other widgets from updating', async () => {
+    const harness = createHarness(async () => response({
+        ...nextData('Queued track'),
+        song_history: [null, { song: { title: 'Previous track' } }],
+    }), 'history', false, [{ type: 'next' }]);
+    await flushPromises();
+    assert.match(harness.target.textContent, /Previous track/);
+    assert.match(harness.states[1].target.textContent, /Queued track/);
+});
+
+test('shares schedule refreshes and stops scheduling after the final widget closes', async () => {
+    let requests = 0;
+    const harness = createHarness(async () => response([
+        { title: 'Show ' + ++requests, is_now: false },
+    ]), 'upcoming', false, [{ type: 'upcoming' }]);
+    await flushPromises();
+    assert.equal(requests, 1);
+
+    harness.timers[0].callback();
+    await flushPromises();
+    assert.equal(requests, 2);
+    for (const state of harness.states) assert.match(state.target.textContent, /Show 2/);
+
+    harness.windowListeners.pagehide();
+    assert.equal(harness.timers[1].cleared, true);
+});
