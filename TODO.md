@@ -34,15 +34,16 @@ The post-release source audit covered the `v1.4.0` tag and the admin changes in 
 - [x] Remove the manual connection test, its AJAX handler and the old status indicators from admin and diagnostics ([PR #4](https://github.com/s0t0na666/WP-Azura-shortcode/pull/4)).
 - [ ] On staging, upgrade from 1.4.0 and verify station settings, the default station, embedded playback and live Now Playing/Playing Next data. Check station add/remove and sanitized diagnostics export.
 - [ ] Exercise all nine blocks in the editor and frontend, including History limits and Upcoming Show with an empty schedule. Record verified WordPress and PHP versions.
-- [ ] Verify the ZIP produced by CI and make the Plugin Check job discover the generated archive instead of hardcoding the 1.4.0 filename.
+- [x] Make the Plugin Check job discover the generated ZIP.
+- [ ] Verify the ZIP from CI and run WordPress Plugin Check.
 
 ### Priority 1 — reliability and accessibility
 
-- [ ] Give Playing Next a visible, accessible loading and error state. Its template omits the status element, so request errors and reconnect messages cannot be shown there. Keep the empty-queue state distinct.
-- [ ] Recover when a WebSocket opens but stops delivering usable station data. Add a timeout for the initial publication, detect stale data and use a bounded REST fallback with backoff. Preserve one shared feed per station and retire fallback requests when live updates resume.
-- [ ] Refresh Upcoming Show on long-open pages. It currently loads once at startup (or on back/forward cache restore), so a show can remain marked upcoming after it starts. Verify refreshes respect the Schedule cache and are shared by duplicate widgets.
-- [ ] Validate Now Playing payloads before publishing them and skip malformed History rows. A null history row currently interrupts rendering and can prevent other widgets sharing the feed from receiving the update.
-- [ ] Make the Default station selector follow row additions, shortcode edits and deletions before saving. The options currently reflect the rows saved at page load.
+- [x] Give Playing Next a visible, accessible loading and error state. Its template omits the status element, so request errors and reconnect messages cannot be shown there. Keep the empty-queue state distinct.
+- [x] Recover when a WebSocket opens but stops delivering usable station data. Add a timeout for the initial publication, detect stale data and use a bounded REST fallback with backoff. Preserve one shared feed per station and retire fallback requests when live updates resume.
+- [x] Refresh Upcoming Show on long-open pages. It currently loads once at startup (or on back/forward cache restore), so a show can remain marked upcoming after it starts. Verify refreshes respect the Schedule cache and are shared by duplicate widgets.
+- [x] Validate Now Playing payloads before publishing them and skip malformed History rows. A null history row currently interrupts rendering and can prevent other widgets sharing the feed from receiving the update.
+- [x] Make the Default station selector follow row additions, shortcode edits and deletions before saving. The options currently reflect the rows saved at page load.
 - [ ] Bound the size of stored diagnostic logs with rotation or retention. The admin view limits displayed lines, while the file continues to grow with each recorded failure. Prefer storing logs outside public uploads where hosting permits it, and verify protected access on supported hosts.
 
 - [ ] Verify how live widgets recover after temporary network loss and browser back/forward navigation with two real stations. Confirm each station shares one WebSocket and refreshes its own REST snapshot on reconnect.
@@ -51,7 +52,7 @@ The post-release source audit covered the `v1.4.0` tag and the admin changes in 
 
 ### Priority 2 — documentation and builder integrations
 
-- [ ] Add Upcoming Show to the admin shortcode reference and explain that the History limit applies to the native Gutenberg renderer; the default History shortcode embeds the AzuraCast history page.
+- [x] Add Upcoming Show to the admin shortcode reference and explain that the History limit applies to the native Gutenberg renderer; the default History shortcode embeds the AzuraCast history page.
 
 - [ ] Evaluate native Elementor widgets that reuse the shortcode and Gutenberg renderers.
 - [ ] Assess Divi 5 modules, an opt-in persistent mini-player and Beaver Builder separately after the core integration checks.

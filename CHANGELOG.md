@@ -3,6 +3,9 @@
 ## Unreleased
 
 - Removed the manual administrator connection test and its station health indicators. Sanitized diagnostics continue to include station configuration and recent logs.
+- Added loading and connection status to Playing Next and recovery for WebSocket connections that stop delivering updates.
+- Refreshed Upcoming Show every five minutes through a shared request per station and skipped malformed track history entries.
+- Kept the default station selector in sync with unsaved station edits and updated the shortcode reference.
 
 ## 1.4.0 — WordPress-native components and administration
 

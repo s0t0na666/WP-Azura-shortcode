@@ -85,9 +85,7 @@ final class AZNS_Shortcodes {
         } else {
             $html .= '<div class="azns-current" aria-live="polite" aria-atomic="true"></div>';
         }
-        if ($type !== 'next') {
-            $html .= '<small class="azns-status">Loading ' . esc_html($station['name']) . '…</small>';
-        }
+        $html .= '<small class="azns-status" role="status" aria-atomic="true">Loading ' . esc_html($station['name']) . '…</small>';
         $html .= '</section>';
 
         // Custom CSS is an administrator-controlled field and applies only to WordPress-rendered components.

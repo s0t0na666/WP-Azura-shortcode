@@ -133,7 +133,7 @@ final class AZNS_Admin {
                 $default_value = is_scalar($raw_default) ? sanitize_title((string) $raw_default) : '';
                 if (!$default_value && !empty($rows[0]['shortcode'])) $default_value = $rows[0]['shortcode'];
                 ?>
-                <p>Default station: <select name="default">
+                <p><label for="azns-default">Default station:</label> <select id="azns-default" name="default">
                     <?php foreach ($rows as $row) {
                         $sc = sanitize_title((string) ($row['shortcode'] ?? ''));
                         $name = (string) ($row['name'] ?? $sc);
@@ -143,8 +143,8 @@ final class AZNS_Admin {
                 <?php submit_button('Save settings'); ?>
             </form>
             <h2>Shortcodes</h2>
-            <p><code>[azura_player station="your_station_shortcode"]</code> <code>[azura_nowplaying station="your_station_shortcode"]</code> <code>[azura_next_track station="your_station_shortcode"]</code> <code>[azura_history station="your_station_shortcode" limit="10"]</code> <code>[azura_podcasts station="your_station_shortcode"]</code> <code>[azura_schedule station="your_station_shortcode"]</code> <code>[azura_listeners station="your_station_shortcode"]</code> <code>[azura_broadcast_mode station="your_station_shortcode"]</code></p>
-            <p>The four public-page shortcodes embed AzuraCast's own pages: player <code>/public/{station}/embed?theme={theme}</code> (150px), history <code>/public/{station}/history?theme={theme}</code> (300px), podcasts <code>/public/{station}/podcasts?embed=true&amp;theme={theme}</code> (400px), and schedule <code>/public/{station}/schedule/embed?theme={theme}</code> (800px). These dimensions match the supplied embed snippets. The selected theme is passed to AzuraCast; WordPress CSS does not style the contents of these iframes.</p>
+            <p><code>[azura_player station="your_station_shortcode"]</code> <code>[azura_nowplaying station="your_station_shortcode"]</code> <code>[azura_next_track station="your_station_shortcode"]</code> <code>[azura_history station="your_station_shortcode"]</code> <code>[azura_podcasts station="your_station_shortcode"]</code> <code>[azura_schedule station="your_station_shortcode"]</code> <code>[azura_upcoming_show station="your_station_shortcode"]</code> <code>[azura_listeners station="your_station_shortcode"]</code> <code>[azura_broadcast_mode station="your_station_shortcode"]</code></p>
+            <p>The four public-page shortcodes embed AzuraCast's own pages: player <code>/public/{station}/embed?theme={theme}</code> (150px), history <code>/public/{station}/history?theme={theme}</code> (300px), podcasts <code>/public/{station}/podcasts?embed=true&amp;theme={theme}</code> (400px), and schedule <code>/public/{station}/schedule/embed?theme={theme}</code> (800px). These dimensions match the supplied embed snippets. The selected theme is passed to AzuraCast; WordPress CSS does not style the contents of these iframes. Use the Gutenberg History block to set a maximum number of tracks in the native list.</p>
             <p>The current components use public AzuraCast endpoints. The supplied 0.24.0 OpenAPI schema accepts a station shortcode as a string station identifier, so a separate numeric ID and API key are not required.</p>
             <p>Legacy aliases: <code>[azuracast_playing_next]</code>, <code>[azura_playing_next]</code>.</p>
         </div>
@@ -152,16 +152,47 @@ final class AZNS_Admin {
         (function () {
             const addButton = document.getElementById('azns-add');
             const rows = document.getElementById('azns-rows');
-            if (!addButton || !rows) return;
+            const defaultStation = document.getElementById('azns-default');
+            if (!addButton || !rows || !defaultStation) return;
+
+            function updateDefaultOptions() {
+                const current = defaultStation.selectedOptions[0];
+                const selectedRow = current?.dataset.row;
+                const selectedValue = current?.value;
+                const options = [];
+
+                for (const row of rows.rows) {
+                    const shortcode = row.querySelector('input[name^="shortcode["]');
+                    const value = shortcode.value.trim();
+                    if (!value) continue;
+                    const name = row.querySelector('input[name^="name["]').value.trim();
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = (name || value) + ' (' + value + ')';
+                    option.dataset.row = shortcode.name;
+                    option.selected = selectedRow ? selectedRow === shortcode.name : selectedValue === value;
+                    options.push(option);
+                }
+
+                defaultStation.replaceChildren(...options);
+            }
+
+            updateDefaultOptions();
+            rows.addEventListener('input', event => {
+                if (event.target.matches('input[name^="shortcode["], input[name^="name["]')) updateDefaultOptions();
+            });
 
             const template = <?php ob_start(); $this->row('__I__', ['shortcode'=>'','name'=>'','url'=>'','theme'=>'dark','css'=>'','art'=>1]); $template=ob_get_clean(); echo wp_json_encode($template); ?>;
             addButton.addEventListener('click', function () {
                 rows.insertAdjacentHTML('beforeend', template.replaceAll('__I__', String(Date.now())));
+                updateDefaultOptions();
             });
 
             rows.addEventListener('click', function (event) {
                 const removeButton = event.target.closest('.azns-remove');
-                if (removeButton) removeButton.closest('tr').remove();
+                if (!removeButton) return;
+                removeButton.closest('tr').remove();
+                updateDefaultOptions();
             });
         })();
         </script>

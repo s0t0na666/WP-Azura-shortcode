@@ -66,7 +66,9 @@ jobs:
         run: |
           bash scripts/build-release.sh "${{ runner.temp }}/release-package"
           mkdir -p "${{ runner.temp }}/plugin-check"
-          unzip -q "${{ runner.temp }}/release-package/azuracast-native-suite-1.4.0.zip" -d "${{ runner.temp }}/plugin-check"
+          archives=("${{ runner.temp }}"/release-package/azuracast-native-suite-*.zip)
+          test "${#archives[@]}" -eq 1
+          unzip -q "${archives[0]}" -d "${{ runner.temp }}/plugin-check"
       - name: Run WordPress Plugin Check
         uses: wordpress/plugin-check-action@v1
         with:
