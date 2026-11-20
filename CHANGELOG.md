@@ -6,6 +6,8 @@
 - Added loading and connection status to Playing Next and recovery for WebSocket connections that stop delivering updates.
 - Refreshed Upcoming Show every five minutes through a shared request per station and skipped malformed track history entries.
 - Kept the default station selector in sync with unsaved station edits and updated the shortcode reference.
+- Bounded diagnostic logs to two 1 MiB files and added an optional private log directory.
+- Added accessible names and keyboard focus handling to station settings.
 
 ## 1.4.0 — WordPress-native components and administration
 

@@ -6,6 +6,7 @@
 .azns-track-meta{display:flex;flex-direction:column;gap:4px;min-width:0}
 .azns-art{width:72px;height:72px;object-fit:cover;border-radius:8px}
 .azns-status,.azns-live,.azns-listeners{display:block;color:var(--muted);font-size:.9em;margin-top:10px}
+.azns-status[hidden]{display:none}
 .azns-history{padding-left:1.5em}
 .azns-history li{padding:6px 0}
 .azns-item{background:var(--panel);padding:12px;border-radius:8px;margin:8px 0}

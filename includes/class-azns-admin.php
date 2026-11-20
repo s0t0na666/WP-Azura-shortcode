@@ -186,13 +186,17 @@ final class AZNS_Admin {
             addButton.addEventListener('click', function () {
                 rows.insertAdjacentHTML('beforeend', template.replaceAll('__I__', String(Date.now())));
                 updateDefaultOptions();
+                rows.lastElementChild.querySelector('input').focus();
             });
 
             rows.addEventListener('click', function (event) {
                 const removeButton = event.target.closest('.azns-remove');
                 if (!removeButton) return;
-                removeButton.closest('tr').remove();
+                const row = removeButton.closest('tr');
+                const neighbor = row.nextElementSibling || row.previousElementSibling;
+                row.remove();
                 updateDefaultOptions();
+                (neighbor?.querySelector('.azns-remove') || addButton).focus();
             });
         })();
         </script>
@@ -202,22 +206,22 @@ final class AZNS_Admin {
     private function row($index, $row) {
         $row = is_array($row) ? $row : [];
         echo '<tr>';
-        foreach (['shortcode', 'name', 'url'] as $field) {
+        foreach (['shortcode' => 'Station shortcode', 'name' => 'Display name', 'url' => 'AzuraCast server URL'] as $field => $label) {
             $raw_value = $row[$field] ?? '';
             $value = is_scalar($raw_value) ? (string) $raw_value : '';
-            echo '<td><input style="width:100%;min-width:90px" type="text" name="' . esc_attr($field) . '[' . esc_attr($index) . ']" value="' . esc_attr($value) . '" autocomplete="new-password"></td>';
+            echo '<td><input style="width:100%;min-width:90px" type="text" aria-label="' . esc_attr($label) . '" name="' . esc_attr($field) . '[' . esc_attr($index) . ']" value="' . esc_attr($value) . '" autocomplete="new-password"></td>';
         }
         $raw_theme = $row['theme'] ?? 'dark';
         $theme = is_string($raw_theme) && in_array($raw_theme, ['dark', 'light'], true) ? $raw_theme : 'dark';
-        echo '<td><select name="theme[' . esc_attr($index) . ']">';
+        echo '<td><select aria-label="AzuraCast public-page theme" name="theme[' . esc_attr($index) . ']">';
         foreach (['dark' => 'Dark', 'light' => 'Light'] as $value => $label) {
             echo '<option value="' . esc_attr($value) . '" ' . selected($theme, $value, false) . '>' . esc_html($label) . '</option>';
         }
         echo '</select></td>';
-        echo '<td><input type="checkbox" name="art[' . esc_attr($index) . ']" value="1" ' . checked(!empty($row['art']), true, false) . '></td>';
+        echo '<td><input type="checkbox" aria-label="Show artwork" name="art[' . esc_attr($index) . ']" value="1" ' . checked(!empty($row['art']), true, false) . '></td>';
         $raw_css = $row['css'] ?? '';
         $css = is_scalar($raw_css) ? (string) $raw_css : '';
-        echo '<td><textarea name="css[' . esc_attr($index) . ']" rows="2" style="width:120px">' . esc_textarea($css) . '</textarea></td>';
+        echo '<td><textarea aria-label="Custom CSS" name="css[' . esc_attr($index) . ']" rows="2" style="width:120px">' . esc_textarea($css) . '</textarea></td>';
         echo '<td><button type="button" class="button-link-delete azns-remove">Remove</button></td></tr>';
     }
 
@@ -269,7 +273,10 @@ final class AZNS_Admin {
 
     public function logs() {
         if (!current_user_can('manage_options')) { return; }
-        echo '<div class="wrap"><h1>AzuraCast logs</h1><p>Stored in uploads/azuracast-logs. Apache/LiteSpeed and IIS protection files are created automatically. Nginx does not read .htaccess files; add a deny rule for your actual uploads URL path. With the default WordPress uploads path:</p><pre><code>location ^~ /wp-content/uploads/azuracast-logs/ { deny all; }</code></pre>';
+        echo '<div class="wrap"><h1>AzuraCast logs</h1><p>Diagnostics retain the current log and one archive, up to 1 MiB each.</p>';
+        if (!defined('AZNS_LOG_DIR') || !is_string(AZNS_LOG_DIR) || trim(AZNS_LOG_DIR) === '') {
+            echo '<p>Default location: uploads/azuracast-logs. Set <code>AZNS_LOG_DIR</code> to an absolute writable directory outside the web root to change it. For the default location on Nginx, deny direct access to the actual uploads URL path:</p><pre><code>location ^~ /wp-content/uploads/azuracast-logs/ { deny all; }</code></pre>';
+        }
         echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '"><input type="hidden" name="action" value="azns_export_diagnostics">';
         wp_nonce_field('azns_export_diagnostics');
         submit_button('Download sanitized diagnostics report', 'secondary');

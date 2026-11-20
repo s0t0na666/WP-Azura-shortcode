@@ -14,6 +14,12 @@ function trailingslashit($value) {
 function sanitize_text_field($value) {
     return trim(strip_tags((string) $value));
 }
+function wp_mkdir_p($path) {
+    return is_dir($path) || mkdir($path, 0775, true);
+}
+function wp_json_encode($value) {
+    return json_encode($value);
+}
 function sanitize_key($value) {
     return strtolower(preg_replace('/[^a-z0-9_\\-]/', '', (string) $value));
 }
@@ -58,6 +64,32 @@ foreach ([
 }
 if (strpos($export, '[redacted]') === false) {
     throw new RuntimeException('Expected redaction markers were not included.');
+}
+
+$file = $directory . '/azuracast.log';
+$large_context = ['detail' => str_repeat('x', 530000)];
+AZNS_Logger::log('info', 'First recent entry', $large_context);
+AZNS_Logger::log('info', 'Second recent entry', $large_context);
+clearstatcache();
+if (!is_file($file . '.1') || filesize($file) > 1048576 || filesize($file . '.1') > 1048576) {
+    throw new RuntimeException('Diagnostic rotation must keep both files within their size limit.');
+}
+$messages = array_column(AZNS_Logger::export_rows(), 'message');
+if (array_slice($messages, -2) !== ['First recent entry', 'Second recent entry']) {
+    throw new RuntimeException('The export must include recent entries across the rotation boundary.');
+}
+
+file_put_contents($file, str_repeat('x', 1100000) . PHP_EOL . json_encode(['message' => 'Legacy recent entry']) . PHP_EOL);
+AZNS_Logger::log('info', 'After upgrade');
+clearstatcache();
+$messages = array_column(AZNS_Logger::export_rows(), 'message');
+if (filesize($file . '.1') > 1048576 || $messages !== ['Legacy recent entry', 'After upgrade']) {
+    throw new RuntimeException('An oversized legacy log must rotate without losing its recent complete entry.');
+}
+
+AZNS_Logger::clear();
+if (AZNS_Logger::tail() !== '' || is_file($file) || is_file($file . '.1')) {
+    throw new RuntimeException('Clearing diagnostics must remove the active file and archive.');
 }
 
 foreach (glob($directory . '/*') ?: [] as $file) {

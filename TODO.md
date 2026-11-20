@@ -35,7 +35,8 @@ The post-release source audit covered the `v1.4.0` tag and the admin changes in 
 - [ ] On staging, upgrade from 1.4.0 and verify station settings, the default station, embedded playback and live Now Playing/Playing Next data. Check station add/remove and sanitized diagnostics export.
 - [ ] Exercise all nine blocks in the editor and frontend, including History limits and Upcoming Show with an empty schedule. Record verified WordPress and PHP versions.
 - [x] Make the Plugin Check job discover the generated ZIP.
-- [ ] Verify the ZIP from CI and run WordPress Plugin Check.
+- [x] Build and inspect the installable ZIP locally with PHP 8.2.
+- [ ] Verify the CI artifact and run WordPress Plugin Check.
 
 ### Priority 1 — reliability and accessibility
 
@@ -44,7 +45,8 @@ The post-release source audit covered the `v1.4.0` tag and the admin changes in 
 - [x] Refresh Upcoming Show on long-open pages. It currently loads once at startup (or on back/forward cache restore), so a show can remain marked upcoming after it starts. Verify refreshes respect the Schedule cache and are shared by duplicate widgets.
 - [x] Validate Now Playing payloads before publishing them and skip malformed History rows. A null history row currently interrupts rendering and can prevent other widgets sharing the feed from receiving the update.
 - [x] Make the Default station selector follow row additions, shortcode edits and deletions before saving. The options currently reflect the rows saved at page load.
-- [ ] Bound the size of stored diagnostic logs with rotation or retention. The admin view limits displayed lines, while the file continues to grow with each recorded failure. Prefer storing logs outside public uploads where hosting permits it, and verify protected access on supported hosts.
+- [x] Rotate diagnostic logs at 1 MiB with one retained archive. Allow a private directory via `AZNS_LOG_DIR`.
+- [ ] Verify that diagnostic log files are inaccessible via HTTP on supported hosting setups.
 
 - [ ] Verify how live widgets recover after temporary network loss and browser back/forward navigation with two real stations. Confirm each station shares one WebSocket and refreshes its own REST snapshot on reconnect.
 - [ ] Check keyboard navigation and screen-reader announcements in the station settings, editor and frontend. Include track changes and empty or unavailable data.
@@ -54,8 +56,10 @@ The post-release source audit covered the `v1.4.0` tag and the admin changes in 
 
 - [x] Add Upcoming Show to the admin shortcode reference and explain that the History limit applies to the native Gutenberg renderer; the default History shortcode embeds the AzuraCast history page.
 
-- [ ] Evaluate native Elementor widgets that reuse the shortcode and Gutenberg renderers.
-- [ ] Assess Divi 5 modules, an opt-in persistent mini-player and Beaver Builder separately after the core integration checks.
+- [x] Assess builder integration boundaries. Native Elementor, Divi and Beaver Builder adapters can reuse the station model and shortcode renderer. Editor preview and frontend asset loading must be tested in each builder with its own fixtures.
+- [ ] Prototype a native Elementor widget with component and station controls.
+- [ ] Prototype and test native Divi 5 and Beaver Builder modules with the same controls.
+- [ ] Prototype a separate opt-in mini-player. A player that survives full page navigation requires its own playback lifecycle and browser testing.
 
 ## Architecture and operational notes
 

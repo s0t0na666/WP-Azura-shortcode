@@ -41,6 +41,8 @@ Each block can use the default station or select a configured station in the blo
 
 The **Logs & Diagnostics** screen can download a JSON report for support. It includes plugin, WordPress and PHP versions, configured station shortcodes, display theme/artwork settings, and sanitized recent log entries. It deliberately omits station server URLs and custom CSS. Complete URLs are removed from exported log messages, and credential/token fields and values are redacted. Download requires a WordPress administrator and a valid nonce.
 
+Diagnostics retain the active log and one archive, up to 1 MiB each. By default they are stored under the WordPress uploads directory in `azuracast-logs`. To log outside the web root, define `AZNS_LOG_DIR` in `wp-config.php` as an absolute directory writable by PHP. Changing the directory directs subsequent logging there. Existing files stay in their original directory.
+
 The administration form also reports skipped invalid shortcode rows, duplicate shortcodes, invalid server URLs and correction of an invalid default-station selection.
 
 ## Additional station indicators
