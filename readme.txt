@@ -4,7 +4,7 @@ Tags: azuracast, radio, player, streaming, shortcode
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 1.4.0
+Stable tag: 1.4.1
 License: GPL-2.0-or-later
 
 Embeds AzuraCast public pages and provides WordPress components for now playing, Playing Next, playback history, podcasts and schedule.
@@ -61,6 +61,11 @@ location ^~ /wp-content/uploads/azuracast-logs/ {
 ```
 
 == Changelog ==
+
+= 1.4.1 =
+* Removed the manual connection test and its diagnostic status indicators.
+* Improved live feed recovery, Playing Next status and Upcoming Show refresh.
+* Improved station settings accessibility and added bounded diagnostic log rotation.
 
 = 1.4.0 =
 * Added dynamic Gutenberg blocks for all nine station components, including Upcoming Show; the History block renders a native recent-track list with a configurable limit while the legacy History shortcode retains the official AzuraCast iframe.

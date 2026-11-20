@@ -17,7 +17,11 @@ $GLOBALS['azns_test_options'] = [
     ],
 ];
 
-function add_action($hook, $callback, $priority = 10) {}
+function add_action($hook, $callback, $priority = 10) {
+    if ($hook === 'wp_ajax_azns_test_connection') {
+        throw new RuntimeException('The retired connection test must not register an AJAX action.');
+    }
+}
 function get_option($name, $default = false) {
     return array_key_exists($name, $GLOBALS['azns_test_options']) ? $GLOBALS['azns_test_options'][$name] : $default;
 }
@@ -56,12 +60,12 @@ final class AZNS_Test_Diagnostic_Stations {
 
 require_once __DIR__ . '/../includes/class-azns-admin.php';
 
-$admin = new AZNS_Admin(new AZNS_Test_Diagnostic_Stations(), null);
+$admin = new AZNS_Admin(new AZNS_Test_Diagnostic_Stations());
 $report = $admin->diagnostics_report();
 $encoded = json_encode($report);
 
-if (($report['stations'][0]['connection']['status'] ?? '') !== 'ok') {
-    throw new RuntimeException('Station connection status is missing from diagnostics.');
+if (array_key_exists('connection', $report['stations'][0])) {
+    throw new RuntimeException('Legacy connection test results must not appear in diagnostics.');
 }
 if (($report['environment']['wordpress_version'] ?? '') !== '6.8-test') {
     throw new RuntimeException('WordPress version is missing from diagnostics.');

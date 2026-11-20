@@ -119,7 +119,16 @@ azns_shortcode_assert(
     'Listener count must be exposed as an atomic polite live region.'
 );
 
+azns_shortcode_assert(
+    in_array('script:azns', $GLOBALS['azns_shortcode_test_enqueued'], true),
+    'Native widgets must enqueue the frontend script.'
+);
+$GLOBALS['azns_shortcode_test_enqueued'] = [];
 $player = $shortcodes->render([], '', 'azura_player');
+azns_shortcode_assert(
+    $GLOBALS['azns_shortcode_test_enqueued'] === ['style:azns'],
+    'An iframe-only embed must enqueue the stylesheet without the native frontend script.'
+);
 azns_shortcode_assert(
     strpos($player, 'https://radio.example.test/base-path/public/test_station/embed?theme=dark') !== false,
     'The official Player iframe must retain the configured AzuraCast base path and station shortcode.'

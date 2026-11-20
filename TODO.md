@@ -19,79 +19,52 @@
 
 The user confirmed that all functionality has been tested successfully. GitHub Actions separately passed PHP lint on PHP 8.1 and 8.5, JavaScript syntax checks, frontend regression tests and clean ZIP packaging. These are distinct forms of validation; the runtime integration testing was performed by the user.
 
-## Active development — 1.4.0
+## Released 1.4.0
 
-The next release should add useful WordPress-native workflows without replacing AzuraCast's own player, queue, history or schedule logic.
+[Release and installable ZIP](https://github.com/s0t0na666/WP-Azura-shortcode/releases/tag/v1.4.0). See [CHANGELOG.md](CHANGELOG.md) for the published changes.
 
-### Priority 0 — development and release workflow
+Staging validation confirmed by the maintainer: the plugin connects to AzuraCast stations and renders components through shortcodes.
 
-- [x] Keep all new feature work on `development`; do not develop directly on `main`.
-- [x] Run the full CI workflow on pull requests targeting both `development` and `main`; editor bundle syntax and all Node regression tests are included.
-- [x] Add PHP CLI regression tests for station configuration, URL validation, REST resource allow-listing, endpoint construction, cache TTLs, malformed API responses and REST proxy status handling.
-- [x] Add CLI regression tests for the administrator-only station connection action (permission, nonce, unknown station, success, upstream HTTP error, malformed payload and network failure).
-- [x] Add mocked AzuraCast payload scenarios for live DJ/AutoDJ, API-unavailable state, empty queue, missing/invalid/failed artwork and WebSocket reconnect with snapshot refresh.
-- [x] Add the official WordPress Plugin Check job; the clean plugin archive passed the general, security, performance and accessibility categories.
-- [ ] Verify the supported WordPress core range, then update the `Tested up to` header only for versions actually tested.
-- [x] Keep the release ZIP reproducible and verify that it excludes tests, CI files, logs, development notes and other non-installable files; include and validate the new block registration/editor files.
+## 1.4.1 release candidate
 
-### Priority 1 — WordPress admin experience
+The post-release source audit covered the `v1.4.0` tag and the admin changes in [PR #4](https://github.com/s0t0na666/WP-Azura-shortcode/pull/4).
 
-- [x] Add an administrator-only per-station **Test connection** action for saved stations; it checks the public Now Playing endpoint, validates the returned AzuraCast payload and reports the HTTP result/station name.
-- [x] Show a compact station health summary in settings: reachable/unreachable, station identity, last check time and last successful check; results are stored per configured station and are updated only by manual checks.
-- [x] Improve validation feedback for duplicate station shortcodes, invalid URLs, empty/invalid shortcodes and an invalid default-station selection.
-- [x] Provide an administrator-only JSON diagnostics export with environment details, station health and sanitized logs; station server URLs and custom CSS are omitted, complete URLs are removed from exported logs, and credential/token values are redacted.
-- [x] Add CLI regression coverage for permission/nonce checks, success, unknown station, HTTP/network errors, invalid payload and preservation of the last successful health timestamp.
-- [x] Add CLI regression coverage confirming diagnostic exports omit station URLs/custom CSS and redact URL credentials, tokens and sensitive log fields.
-- [ ] Verify the health status display and diagnostics download against the staging WordPress installation.
+### Priority 0 — maintenance release
 
-### Priority 1 — native Gutenberg blocks
+- [x] Remove the manual connection test, its AJAX handler and the old status indicators from admin and diagnostics ([PR #4](https://github.com/s0t0na666/WP-Azura-shortcode/pull/4)).
+- [ ] On staging, upgrade from 1.4.0 and verify station settings, the default station, embedded playback and live Now Playing/Playing Next data. Check station add/remove and sanitized diagnostics export.
+- [ ] Exercise all nine blocks in the editor and frontend, including History limits and Upcoming Show with an empty schedule. Record verified WordPress and PHP versions.
+- [x] Make the Plugin Check job discover the generated ZIP.
+- [x] Build and inspect the installable ZIP locally with PHP 8.2.
+- [x] Confirm CI generated the installable artifact and WordPress Plugin Check passed for the original PR #4 staging build.
+- [ ] Confirm CI and the versioned ZIP for the 1.4.1 candidate.
 
-- [x] Register dynamic Gutenberg blocks for Player, Now Playing, Playing Next, History, Podcasts, Schedule, Upcoming Show, Listener Count and Broadcast Mode on `development`.
-- [x] Provide a default/configured station selector and a History entry-limit control in the block sidebar; the native History block renderer now applies the selected limit while the existing History shortcode remains unchanged.
-- [x] Reuse the existing shortcode rendering implementation for dynamic block output.
-- [x] Keep existing shortcodes fully backward-compatible; block support is additive.
-- [x] Add Node.js editor tests covering registration of all nine blocks and the History limit control.
-- [x] Add PHP CLI tests for dynamic block registration, editor configuration, server-render callbacks, station sanitization and History limit bounds.
-- [x] Keep the legacy History shortcode as the official AzuraCast iframe and render Gutenberg History natively from `song_history` so its display limit has an effect.
-- [ ] Verify block insertion, sidebar controls, saved attributes and frontend rendering on the staging WordPress site (runtime editor testing is still required).
-- [ ] Verify the station connection test in the WordPress admin against the configured AzuraCast station.
+Staging verification on WordPress 7.1.4 and PHP 8.1.34 confirmed the PR #4 candidate is active, the default station is still `mugadavanje`, and all nine Gutenberg blocks return HTML through the authenticated block renderer. History renders the requested limit of 3. Live WordPress-to-AzuraCast checks are deferred due to the hosting DNS issue. Interactive editor and frontend checks remain open.
 
-### Priority 2 — additional station data
+### Priority 1 — reliability and accessibility
 
-- [x] Evaluate public AzuraCast data for current listener count and live broadcast mode; do not equate AutoDJ with a server outage.
-- [x] Add optional listener-count and broadcast-mode components using the existing Now Playing payload: `listeners.current` (fallback `listeners.total`) and the explicit boolean `live.is_live`. The component displays Live DJ/AutoDJ and does not claim server online/offline status.
-- [x] Add a consistent, accessible artwork placeholder for missing/invalid URLs and image-load failures; remove it only after a valid image loads.
-- [x] Add frontend tests for listener counts, Live DJ and AutoDJ states.
-- [x] Add a compact Upcoming Show shortcode and Gutenberg block using the public Schedule endpoint; select only the first future entry returned by AzuraCast (or the current entry when no future entry exists), without calculating or inventing schedule entries.
-- [x] Add Node.js regression tests for listener count and both Live DJ/AutoDJ states.
+- [x] Give Playing Next a visible, accessible loading and error state. Its template omits the status element, so request errors and reconnect messages cannot be shown there. Keep the empty-queue state distinct.
+- [x] Recover when a WebSocket opens but stops delivering usable station data. Add a timeout for the initial publication, detect stale data and use a bounded REST fallback with backoff. Preserve one shared feed per station and retire fallback requests when live updates resume.
+- [x] Refresh Upcoming Show on long-open pages. It currently loads once at startup (or on back/forward cache restore), so a show can remain marked upcoming after it starts. Verify refreshes respect the Schedule cache and are shared by duplicate widgets.
+- [x] Validate Now Playing payloads before publishing them and skip malformed History rows. A null history row currently interrupts rendering and can prevent other widgets sharing the feed from receiving the update.
+- [x] Make the Default station selector follow row additions, shortcode edits and deletions before saving. The options currently reflect the rows saved at page load.
+- [x] Rotate diagnostic logs at 1 MiB with one retained archive. Allow a private directory via `AZNS_LOG_DIR`.
+- [ ] Verify that diagnostic log files are inaccessible via HTTP on supported hosting setups.
 
-### Priority 2 — performance, accessibility and presentation
+- [ ] Verify how live widgets recover after temporary network loss and browser back/forward navigation with two real stations. Confirm each station shares one WebSocket and refreshes its own REST snapshot on reconnect.
+- [ ] Check keyboard navigation and screen-reader announcements in the station settings, editor and frontend. Include track changes and empty or unavailable data.
+- [x] Inspect the HTML of published staging pages for conditional asset delivery. The mixed component page, `/elementor-2326/`, includes the frontend CSS and JS. Five pages without AzuraCast Suite components omit both references.
+- [x] Maintainer confirmed staging components and assets load correctly.
+- [ ] Capture browser network requests on isolated iframe-only and native Gutenberg test pages.
 
-- [x] Measure REST request frequency and WebSocket reconnect behavior: multiple live components for one station now share one initial REST snapshot and one WebSocket; reconnect refreshes one snapshot, while separate stations remain isolated. No additional polling or live-update caching was introduced.
-- [ ] If caching is needed, use a short TTL for REST snapshots only; never cache or delay live WebSocket publications.
-- [x] Cover core loading, empty-queue, unavailable API, missing-artwork and reconnect/error states with clear user feedback and regression tests.
-- [ ] Complete a full staging accessibility review for keyboard and screen-reader behavior; current code provides artwork alt text/fallback labels and polite atomic live regions for changing Now Playing, Playing Next and listener/broadcast indicators.
-- [ ] Keep the plugin lightweight and avoid loading frontend assets on pages that do not use its shortcodes or blocks.
+### Priority 2 — documentation and builder integrations
 
-### Later milestone — builder integrations (candidate 1.5.0)
+- [x] Add Upcoming Show to the admin shortcode reference and explain that the History limit applies to the native Gutenberg renderer; the default History shortcode embeds the AzuraCast history page.
 
-- [ ] Add native Elementor widgets for the supported station components.
-- [ ] Add Divi 5 modules; investigate the requested persistent bottom mini-player/dock on scroll as a separate, opt-in feature.
-- [ ] Evaluate Beaver Builder integration after the Gutenberg and Elementor implementations are stable.
-- [ ] Document compatibility with the Classic Editor and popular themes; retain shortcodes as the universal fallback.
-
-## 1.4.0 release acceptance checklist
-
-- [x] All currently implemented feature work is committed to `development`; remaining items are staging validation and release-readiness tasks. No changes have been merged into `main`.
-- [x] PHP CLI, JavaScript regression, package validation and WordPress Plugin Check workflows pass on the current development candidate (live WordPress/AzuraCast staging validation remains separate).
-- [ ] Test on a staging WordPress installation with the supported PHP versions and the target AzuraCast version.
-- [ ] Re-test every shortcode and block, multiple stations, settings save/update, desktop/tablet/mobile and Light/Dark themes.
-- [ ] Re-test online/offline state, empty queue, artwork fallback, WebSocket reconnect and browser back/forward navigation, plus the new Listener Count and Broadcast Mode components on the staging site.
-- [ ] Test fresh installation and upgrade from 1.3.4, including rollback/recovery notes.
-- [ ] Update plugin version, `readme.txt`, `CHANGELOG.md`, documentation and ZIP filename consistently.
-- [ ] Build and inspect the clean installable ZIP from the release tag.
-- [ ] Open a pull request from `development` to `main`; merge only after checks pass and the release candidate is accepted.
-- [ ] Tag and publish the new release from the merged `main` commit.
+- [x] Assess builder integration boundaries. Native Elementor, Divi and Beaver Builder adapters can reuse the station model and shortcode renderer. Editor preview and frontend asset loading must be tested in each builder with its own fixtures.
+- [ ] Prototype a native Elementor widget with component and station controls.
+- [ ] Prototype and test native Divi 5 and Beaver Builder modules with the same controls.
+- [ ] Prototype a separate opt-in mini-player. A player that survives full page navigation requires its own playback lifecycle and browser testing.
 
 ## Architecture and operational notes
 
