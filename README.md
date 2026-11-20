@@ -4,7 +4,7 @@ WordPress plugin for embedding AzuraCast public pages and displaying radio compo
 
 ## Development status
 
-Latest published release: [1.4.0](https://github.com/s0t0na666/WP-Azura-shortcode/releases/tag/v1.4.0).
+Latest published release: [1.5.0](https://github.com/s0t0na666/WP-Azura-shortcode/releases/tag/v1.5.0).
 
 The plugin uses AzuraCast public-page embeds for the full Player, History shortcode, Podcasts, and Schedule interfaces. The Gutenberg History block is a native WordPress list sourced from AzuraCast's `song_history` data and applies its own display limit. A compact Upcoming Show component reads AzuraCast's public Schedule endpoint and displays the next returned schedule entry. Standalone Now Playing/Playing Next components consume AzuraCast's own Now Playing data instead of creating or estimating metadata in WordPress.
 
@@ -38,6 +38,8 @@ Version 1.4.0 added nine dynamic Gutenberg blocks:
 Each block can use the default station or select a configured station in the block sidebar. Blocks reuse the existing shortcode renderer on the server. The Gutenberg History block selects a native list renderer so its maximum-entry control works; the existing `[azura_history]` shortcode remains the official AzuraCast History iframe. The native list can show fewer entries than its selected maximum when the station's public API history setting returns fewer rows. The Upcoming Show component uses the first non-current entry returned by AzuraCast's already ordered schedule response; when there is no future entry, it shows the current entry if one exists. It does not calculate or invent schedule entries.
 
 ## WordPress administration and diagnostics
+
+Use **AzuraCast → Stations** to manage stations and their appearance. Open **Shortcodes** to select a saved station and copy examples for the player, live data, history, podcasts, or schedule. The default station option produces unqualified shortcodes that follow the current playback default.
 
 The **Logs & Diagnostics** screen can download a JSON report for support. It includes plugin, WordPress and PHP versions, configured station shortcodes, display theme/artwork settings, and sanitized recent log entries. It deliberately omits station server URLs and custom CSS. Complete URLs are removed from exported log messages, and credential/token fields and values are redacted. Download requires a WordPress administrator and a valid nonce.
 

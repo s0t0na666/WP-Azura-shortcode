@@ -3,18 +3,28 @@ if (!defined('ABSPATH')) { exit; }
 
 final class AZNS_Admin {
     private $stations;
+    private $screens = [];
 
     public function __construct($stations) {
         $this->stations = $stations;
         add_action('admin_menu', [$this, 'menu']);
+        add_action('admin_enqueue_scripts', [$this, 'enqueue']);
         add_action('admin_post_azns_save', [$this, 'save']);
         add_action('admin_post_azns_clear', [$this, 'clear']);
         add_action('admin_post_azns_export_diagnostics', [$this, 'export_diagnostics']);
     }
 
     public function menu() {
-        add_menu_page('AzuraCast', 'AzuraCast', 'manage_options', 'azns', [$this, 'page'], 'dashicons-controls-volumeon');
-        add_submenu_page('azns', 'Logs & Diagnostics', 'Logs & Diagnostics', 'manage_options', 'azns-logs', [$this, 'logs']);
+        $this->screens[] = add_menu_page('AzuraCast Suite', 'AzuraCast', 'manage_options', 'azns', [$this, 'page'], 'dashicons-controls-volumeon');
+        add_submenu_page('azns', 'Stations', 'Stations', 'manage_options', 'azns', [$this, 'page']);
+        $this->screens[] = add_submenu_page('azns', 'Shortcodes', 'Shortcodes', 'manage_options', 'azns-shortcodes', [$this, 'shortcodes']);
+        $this->screens[] = add_submenu_page('azns', 'Logs & Diagnostics', 'Logs & Diagnostics', 'manage_options', 'azns-logs', [$this, 'logs']);
+    }
+
+    public function enqueue($screen) {
+        if (!in_array($screen, $this->screens, true)) return;
+        wp_enqueue_style('azns-admin', AZNS_URL . 'assets/css/admin.css', [], AZNS_VER);
+        wp_enqueue_script('azns-admin', AZNS_URL . 'assets/js/admin.js', [], AZNS_VER, true);
     }
 
     public function save() {
@@ -99,20 +109,20 @@ final class AZNS_Admin {
 
     public function page() {
         if (!current_user_can('manage_options')) { return; }
-        $options = get_option(AZNS_Stations::OPT, []);
-        if (!is_array($options)) $options = [];
-        $rows = array_values($this->stations->all());
-        if (!$rows) {
-            $rows = [['shortcode' => '', 'name' => '', 'url' => '', 'theme' => 'dark', 'css' => '', 'art' => 1]];
-        }
+        $rows = $this->stations->all(false);
+        $default = $this->stations->get()['shortcode'] ?? '';
+        $blank = ['shortcode' => '', 'name' => '', 'url' => '', 'theme' => 'dark', 'css' => '', 'art' => true];
+        if (!$rows) $rows = [$blank];
         $invalid_shortcode_count = isset($_GET['invalid_shortcode']) ? absint(wp_unslash($_GET['invalid_shortcode'])) : 0;
         $duplicate_shortcode_count = isset($_GET['duplicate']) ? absint(wp_unslash($_GET['duplicate'])) : 0;
         $invalid_url_count = isset($_GET['invalid_url']) ? absint(wp_unslash($_GET['invalid_url'])) : 0;
         $default_corrected = isset($_GET['default_corrected']) && (string) wp_unslash($_GET['default_corrected']) === '1';
         ?>
-        <div class="wrap">
-            <h1>AzuraCast Suite</h1>
-            <p>The player, history, podcasts and schedule are embedded from AzuraCast's public pages. The station shortcode is the station identifier used in WordPress shortcodes.</p>
+        <div class="wrap azns-admin">
+            <div class="azns-admin-heading">
+                <div><h1>AzuraCast Suite: Stations</h1><p>Manage the stations available to your shortcodes and blocks.</p></div>
+                <a class="button" href="<?php echo esc_url(admin_url('admin.php?page=azns-shortcodes')); ?>">View shortcodes</a>
+            </div>
             <?php if (isset($_GET['saved'])) : ?><div class="notice notice-success"><p>Settings saved.</p></div><?php endif; ?>
             <?php if (isset($_GET['error']) && $_GET['error'] === 'no_stations') : ?><div class="notice notice-error"><p>No valid station was saved. Add at least one station with a valid HTTP or HTTPS server URL.</p></div><?php endif; ?>
             <?php if ($invalid_shortcode_count > 0) : ?><div class="notice notice-warning"><p><?php echo esc_html($invalid_shortcode_count . ' station row(s) were skipped because the shortcode was empty or invalid.'); ?></p></div><?php endif; ?>
@@ -121,108 +131,119 @@ final class AZNS_Admin {
             <?php if ($default_corrected) : ?><div class="notice notice-info"><p>The selected default station was not valid, so the first saved station was selected instead.</p></div><?php endif; ?>
             <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
                 <input type="hidden" name="action" value="azns_save"><?php wp_nonce_field('azns_save'); ?>
-                <table class="widefat striped">
-                    <thead><tr>
-                        <?php foreach (['Station shortcode', 'Display name', 'AzuraCast server URL', 'AzuraCast public-page theme', 'Show artwork', 'Custom CSS for WordPress components', ''] as $heading) { echo '<th>' . esc_html($heading) . '</th>'; } ?>
-                    </tr></thead>
-                    <tbody id="azns-rows"><?php foreach ($rows as $index => $row) { $this->row($index, $row); } ?></tbody>
-                </table>
-                <p><button type="button" class="button" id="azns-add">Add station</button></p>
-                <?php
-                $raw_default = $options['default'] ?? '';
-                $default_value = is_scalar($raw_default) ? sanitize_title((string) $raw_default) : '';
-                if (!$default_value && !empty($rows[0]['shortcode'])) $default_value = $rows[0]['shortcode'];
-                ?>
-                <p><label for="azns-default">Default station:</label> <select id="azns-default" name="default">
-                    <?php foreach ($rows as $row) {
-                        $sc = sanitize_title((string) ($row['shortcode'] ?? ''));
-                        $name = (string) ($row['name'] ?? $sc);
-                        echo '<option value="' . esc_attr($sc) . '" ' . selected($default_value, $sc, false) . '>' . esc_html($name . ' (' . $sc . ')') . '</option>';
-                    } ?>
-                </select></p>
-                <?php submit_button('Save settings'); ?>
+                <section class="azns-admin-panel azns-admin-default" aria-labelledby="azns-default-title">
+                    <h2 id="azns-default-title">Playback defaults</h2>
+                    <label for="azns-default">Default station</label>
+                    <select id="azns-default" name="default">
+                        <?php foreach ($rows as $row) :
+                            if ($row['shortcode'] === '') continue;
+                            $label = $row['name'] !== '' ? $row['name'] . ' (' . $row['shortcode'] . ')' : $row['shortcode'];
+                            ?>
+                            <option value="<?php echo esc_attr($row['shortcode']); ?>" <?php selected($default, $row['shortcode']); ?>><?php echo esc_html($label); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <p class="description">Used by shortcodes and blocks that leave the station unspecified.</p>
+                </section>
+
+                <div class="azns-admin-section-heading">
+                    <h2>Configured stations</h2>
+                    <button type="button" class="button" id="azns-add" hidden>Add station</button>
+                </div>
+                <div id="azns-rows">
+                    <?php foreach (array_values($rows) as $index => $row) { $this->station_card($index, $row, $default); } ?>
+                </div>
+                <template id="azns-station-template"><?php $this->station_card('__INDEX__', $blank, ''); ?></template>
+                <div class="azns-admin-actions">
+                    <?php submit_button('Save settings', 'primary', 'submit', false); ?>
+                </div>
             </form>
-            <h2>Shortcodes</h2>
-            <p><code>[azura_player station="your_station_shortcode"]</code> <code>[azura_nowplaying station="your_station_shortcode"]</code> <code>[azura_next_track station="your_station_shortcode"]</code> <code>[azura_history station="your_station_shortcode"]</code> <code>[azura_podcasts station="your_station_shortcode"]</code> <code>[azura_schedule station="your_station_shortcode"]</code> <code>[azura_upcoming_show station="your_station_shortcode"]</code> <code>[azura_listeners station="your_station_shortcode"]</code> <code>[azura_broadcast_mode station="your_station_shortcode"]</code></p>
-            <p>The four public-page shortcodes embed AzuraCast's own pages: player <code>/public/{station}/embed?theme={theme}</code> (150px), history <code>/public/{station}/history?theme={theme}</code> (300px), podcasts <code>/public/{station}/podcasts?embed=true&amp;theme={theme}</code> (400px), and schedule <code>/public/{station}/schedule/embed?theme={theme}</code> (800px). These dimensions match the supplied embed snippets. The selected theme is passed to AzuraCast; WordPress CSS does not style the contents of these iframes. Use the Gutenberg History block to set a maximum number of tracks in the native list.</p>
-            <p>The current components use public AzuraCast endpoints. The supplied 0.24.0 OpenAPI schema accepts a station shortcode as a string station identifier, so a separate numeric ID and API key are not required.</p>
-            <p>Legacy aliases: <code>[azuracast_playing_next]</code>, <code>[azura_playing_next]</code>.</p>
         </div>
-        <script>
-        (function () {
-            const addButton = document.getElementById('azns-add');
-            const rows = document.getElementById('azns-rows');
-            const defaultStation = document.getElementById('azns-default');
-            if (!addButton || !rows || !defaultStation) return;
-
-            function updateDefaultOptions() {
-                const current = defaultStation.selectedOptions[0];
-                const selectedRow = current?.dataset.row;
-                const selectedValue = current?.value;
-                const options = [];
-
-                for (const row of rows.rows) {
-                    const shortcode = row.querySelector('input[name^="shortcode["]');
-                    const value = shortcode.value.trim();
-                    if (!value) continue;
-                    const name = row.querySelector('input[name^="name["]').value.trim();
-                    const option = document.createElement('option');
-                    option.value = value;
-                    option.textContent = (name || value) + ' (' + value + ')';
-                    option.dataset.row = shortcode.name;
-                    option.selected = selectedRow ? selectedRow === shortcode.name : selectedValue === value;
-                    options.push(option);
-                }
-
-                defaultStation.replaceChildren(...options);
-            }
-
-            updateDefaultOptions();
-            rows.addEventListener('input', event => {
-                if (event.target.matches('input[name^="shortcode["], input[name^="name["]')) updateDefaultOptions();
-            });
-
-            const template = <?php ob_start(); $this->row('__I__', ['shortcode'=>'','name'=>'','url'=>'','theme'=>'dark','css'=>'','art'=>1]); $template=ob_get_clean(); echo wp_json_encode($template); ?>;
-            addButton.addEventListener('click', function () {
-                rows.insertAdjacentHTML('beforeend', template.replaceAll('__I__', String(Date.now())));
-                updateDefaultOptions();
-                rows.lastElementChild.querySelector('input').focus();
-            });
-
-            rows.addEventListener('click', function (event) {
-                const removeButton = event.target.closest('.azns-remove');
-                if (!removeButton) return;
-                const row = removeButton.closest('tr');
-                const neighbor = row.nextElementSibling || row.previousElementSibling;
-                row.remove();
-                updateDefaultOptions();
-                (neighbor?.querySelector('.azns-remove') || addButton).focus();
-            });
-        })();
-        </script>
         <?php
     }
 
-    private function row($index, $row) {
-        $row = is_array($row) ? $row : [];
-        echo '<tr>';
-        foreach (['shortcode' => 'Station shortcode', 'name' => 'Display name', 'url' => 'AzuraCast server URL'] as $field => $label) {
-            $raw_value = $row[$field] ?? '';
-            $value = is_scalar($raw_value) ? (string) $raw_value : '';
-            echo '<td><input style="width:100%;min-width:90px" type="text" aria-label="' . esc_attr($label) . '" name="' . esc_attr($field) . '[' . esc_attr($index) . ']" value="' . esc_attr($value) . '" autocomplete="new-password"></td>';
-        }
-        $raw_theme = $row['theme'] ?? 'dark';
-        $theme = is_string($raw_theme) && in_array($raw_theme, ['dark', 'light'], true) ? $raw_theme : 'dark';
-        echo '<td><select aria-label="AzuraCast public-page theme" name="theme[' . esc_attr($index) . ']">';
-        foreach (['dark' => 'Dark', 'light' => 'Light'] as $value => $label) {
-            echo '<option value="' . esc_attr($value) . '" ' . selected($theme, $value, false) . '>' . esc_html($label) . '</option>';
-        }
-        echo '</select></td>';
-        echo '<td><input type="checkbox" aria-label="Show artwork" name="art[' . esc_attr($index) . ']" value="1" ' . checked(!empty($row['art']), true, false) . '></td>';
-        $raw_css = $row['css'] ?? '';
-        $css = is_scalar($raw_css) ? (string) $raw_css : '';
-        echo '<td><textarea aria-label="Custom CSS" name="css[' . esc_attr($index) . ']" rows="2" style="width:120px">' . esc_textarea($css) . '</textarea></td>';
-        echo '<td><button type="button" class="button-link-delete azns-remove">Remove</button></td></tr>';
+    private function station_card($index, $row, $default) {
+        $title = $row['name'] !== '' ? $row['name'] : $row['shortcode'];
+        $is_default = $default !== '' && $row['shortcode'] === $default;
+        ?>
+        <section class="azns-admin-panel azns-admin-station" aria-labelledby="azns-station-title-<?php echo esc_attr($index); ?>">
+            <div class="azns-admin-section-heading">
+                <h3 id="azns-station-title-<?php echo esc_attr($index); ?>" data-station-title><?php echo esc_html($title !== '' ? $title : 'New station'); ?></h3>
+                <span class="azns-admin-badge" data-station-default <?php if (!$is_default) echo 'hidden'; ?>>Default</span>
+            </div>
+            <div class="azns-admin-fields">
+                <label>Display name
+                    <input type="text" name="name[<?php echo esc_attr($index); ?>]" value="<?php echo esc_attr($row['name']); ?>" data-station-name>
+                </label>
+                <label>Station identifier
+                    <input type="text" name="shortcode[<?php echo esc_attr($index); ?>]" value="<?php echo esc_attr($row['shortcode']); ?>" data-station-slug>
+                </label>
+                <label class="azns-admin-wide">AzuraCast server URL
+                    <input type="text" inputmode="url" name="url[<?php echo esc_attr($index); ?>]" value="<?php echo esc_attr($row['url']); ?>" placeholder="https://radio.example.com">
+                </label>
+            </div>
+            <details class="azns-admin-appearance">
+                <summary>Appearance</summary>
+                <div class="azns-admin-fields">
+                    <label>Public page theme
+                        <select name="theme[<?php echo esc_attr($index); ?>]">
+                            <option value="dark" <?php selected($row['theme'], 'dark'); ?>>Dark</option>
+                            <option value="light" <?php selected($row['theme'], 'light'); ?>>Light</option>
+                        </select>
+                    </label>
+                    <label class="azns-admin-checkbox"><input type="checkbox" name="art[<?php echo esc_attr($index); ?>]" value="1" <?php checked($row['art']); ?>> Show artwork</label>
+                    <label class="azns-admin-wide">Custom CSS
+                        <textarea name="css[<?php echo esc_attr($index); ?>]" rows="4"><?php echo esc_textarea($row['css']); ?></textarea>
+                    </label>
+                </div>
+            </details>
+            <div class="azns-admin-station-footer"><button type="button" class="button-link-delete azns-remove" hidden>Remove station</button></div>
+        </section>
+        <?php
+    }
+
+    public function shortcodes() {
+        if (!current_user_can('manage_options')) return;
+        ?>
+        <div class="wrap azns-admin">
+            <div class="azns-admin-heading">
+                <div><h1>AzuraCast Suite: Shortcodes</h1><p>Copy a shortcode into a page, post or supported page builder.</p></div>
+                <a class="button" href="<?php echo esc_url(admin_url('admin.php?page=azns')); ?>">Manage stations</a>
+            </div>
+            <div class="azns-admin-panel azns-admin-default">
+                <label for="azns-shortcode-station">Station for shortcode examples</label>
+                <select id="azns-shortcode-station">
+                    <option value="">Default station</option>
+                    <?php foreach ($this->stations->all() as $station) : ?>
+                        <option value="<?php echo esc_attr($station['shortcode']); ?>"><?php echo esc_html($station['name'] . ' (' . $station['shortcode'] . ')'); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <p class="description">Default station examples follow the station selected in Settings.</p>
+                <p class="screen-reader-text" id="azns-copy-status" role="status" aria-atomic="true"></p>
+            </div>
+            <?php foreach (AZNS_Shortcodes::CATALOG as $group => $items) : ?>
+                <section class="azns-admin-panel azns-admin-catalog">
+                    <h2><?php echo esc_html($group); ?></h2>
+                    <?php foreach ($items as $tag => [$name, $description]) : ?>
+                        <div class="azns-admin-shortcode">
+                            <div><h3><?php echo esc_html($name); ?></h3><p><?php echo esc_html($description); ?></p></div>
+                            <div class="azns-admin-copy">
+                                <code data-shortcode="<?php echo esc_attr($tag); ?>"><?php echo esc_html('[' . $tag . ']'); ?></code>
+                                <button type="button" class="button" aria-label="<?php echo esc_attr('Copy ' . $name . ' shortcode'); ?>" data-copy-shortcode hidden>Copy</button>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </section>
+            <?php endforeach; ?>
+            <details class="azns-admin-panel">
+                <summary>Legacy Playing Next aliases</summary>
+                <ul>
+                    <?php foreach (AZNS_Shortcodes::LEGACY_TAGS as $alias) : ?>
+                        <li><code><?php echo esc_html('[' . $alias . ']'); ?></code></li>
+                    <?php endforeach; ?>
+                </ul>
+            </details>
+        </div>
+        <?php
     }
 
     public function diagnostics_report() {
@@ -273,22 +294,54 @@ final class AZNS_Admin {
 
     public function logs() {
         if (!current_user_can('manage_options')) { return; }
-        echo '<div class="wrap"><h1>AzuraCast logs</h1><p>Diagnostics retain the current log and one archive, up to 1 MiB each.</p>';
-        if (!defined('AZNS_LOG_DIR') || !is_string(AZNS_LOG_DIR) || trim(AZNS_LOG_DIR) === '') {
-            echo '<p>Default location: uploads/azuracast-logs. Set <code>AZNS_LOG_DIR</code> to an absolute writable directory outside the web root to change it. For the default location on Nginx, deny direct access to the actual uploads URL path:</p><pre><code>location ^~ /wp-content/uploads/azuracast-logs/ { deny all; }</code></pre>';
-        }
-        echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '"><input type="hidden" name="action" value="azns_export_diagnostics">';
-        wp_nonce_field('azns_export_diagnostics');
-        submit_button('Download sanitized diagnostics report', 'secondary');
-        echo '</form><h2>Recent log entries</h2><pre style="max-height:500px;overflow:auto;background:white;padding:12px">' . esc_html(AZNS_Logger::tail()) . '</pre><form method="post" action="' . esc_url(admin_url('admin-post.php')) . '"><input type="hidden" name="action" value="azns_clear">';
-        wp_nonce_field('azns_clear');
-        submit_button('Clear logs', 'secondary');
-        echo '</form></div>';
+        $recent = AZNS_Logger::tail();
+        ?>
+        <div class="wrap azns-admin">
+            <div class="azns-admin-heading">
+                <div><h1>AzuraCast Suite: Logs &amp; Diagnostics</h1><p>Review recent events and export a report for troubleshooting.</p></div>
+            </div>
+            <section class="azns-admin-panel">
+                <h2>Diagnostics report</h2>
+                <p>Download a sanitized JSON report with plugin settings metadata and recent events.</p>
+                <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+                    <input type="hidden" name="action" value="azns_export_diagnostics">
+                    <?php wp_nonce_field('azns_export_diagnostics'); ?>
+                    <?php submit_button('Download diagnostics', 'primary', 'azns-download', false); ?>
+                </form>
+            </section>
+            <section class="azns-admin-panel">
+                <h2>Recent log entries</h2>
+                <?php if ($recent !== '') : ?>
+                    <pre class="azns-admin-log" tabindex="0" aria-label="Recent log entries"><?php echo esc_html($recent); ?></pre>
+                    <form class="azns-admin-clear" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+                        <input type="hidden" name="action" value="azns_clear">
+                        <?php wp_nonce_field('azns_clear'); ?>
+                        <label class="azns-admin-checkbox"><input type="checkbox" name="confirm_clear" value="1" required> Confirm deletion of the active and archived logs</label>
+                        <?php submit_button('Clear logs', 'secondary', 'azns-clear-logs', false); ?>
+                    </form>
+                <?php else : ?>
+                    <p>No log entries yet.</p>
+                <?php endif; ?>
+            </section>
+            <details class="azns-admin-panel">
+                <summary>Log storage</summary>
+                <p>Diagnostics retain the current log and one archive, up to 1 MiB each.</p>
+                <?php if (!defined('AZNS_LOG_DIR') || !is_string(AZNS_LOG_DIR) || trim(AZNS_LOG_DIR) === '') : ?>
+                    <p>Default location: uploads/azuracast-logs. Set <code>AZNS_LOG_DIR</code> to an absolute writable directory outside the web root to change it. For the default location on Nginx, deny direct access to the actual uploads URL path:</p>
+                    <pre class="azns-admin-log"><code>location ^~ /wp-content/uploads/azuracast-logs/ { deny all; }</code></pre>
+                <?php endif; ?>
+            </details>
+        </div>
+        <?php
     }
 
     public function clear() {
         if (!current_user_can('manage_options')) { wp_die('Forbidden'); }
         check_admin_referer('azns_clear');
+        if (($_POST['confirm_clear'] ?? '') !== '1') {
+            wp_safe_redirect(admin_url('admin.php?page=azns-logs'));
+            exit;
+        }
         AZNS_Logger::clear();
         wp_safe_redirect(admin_url('admin.php?page=azns-logs'));
         exit;
