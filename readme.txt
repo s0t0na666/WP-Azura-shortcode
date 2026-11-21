@@ -4,7 +4,7 @@ Tags: azuracast, radio, player, streaming, shortcode
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 1.5.0
+Stable tag: 1.6.1
 License: GPL-2.0-or-later
 
 Embeds AzuraCast public pages and provides WordPress components for now playing, Playing Next, playback history, podcasts and schedule.
@@ -61,6 +61,13 @@ location ^~ /wp-content/uploads/azuracast-logs/ {
 ```
 
 == Changelog ==
+
+= 1.6.1 =
+* Display Upcoming Show by default for future entries and allow a custom label per station.
+
+= 1.6.0 =
+* Load Upcoming Show and Now Playing directly from AzuraCast with WordPress REST fallback.
+* Customize AutoDJ and Live DJ labels per station.
 
 = 1.5.0 =
 * Redesigned the Stations, Shortcodes, and Logs & Diagnostics screens.

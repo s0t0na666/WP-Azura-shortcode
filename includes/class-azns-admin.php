@@ -34,6 +34,10 @@ final class AZNS_Admin {
         $posted = wp_unslash($_POST);
         $shortcodes = (isset($posted['shortcode']) && is_array($posted['shortcode'])) ? $posted['shortcode'] : [];
         $fields = ['name', 'url', 'theme', 'css', 'art'];
+        $labels = [];
+        foreach (array_keys(AZNS_Stations::DISPLAY_LABELS) as $field) {
+            $labels[$field] = isset($posted[$field]) && is_array($posted[$field]) ? $posted[$field] : [];
+        }
         $submitted = [];
         foreach ($fields as $field) {
             $submitted[$field] = (isset($posted[$field]) && is_array($posted[$field])) ? $posted[$field] : [];
@@ -80,7 +84,10 @@ final class AZNS_Admin {
             }
 
             $seen[$shortcode] = true;
-            $rows[] = $row;
+            $rows[] = $row + AZNS_Stations::display_labels(array_map(
+                static fn ($values) => $values[$index] ?? '',
+                $labels
+            ));
         }
 
         if (!$rows) {
@@ -194,6 +201,17 @@ final class AZNS_Admin {
                     <label class="azns-admin-wide">Custom CSS
                         <textarea name="css[<?php echo esc_attr($index); ?>]" rows="4"><?php echo esc_textarea($row['css']); ?></textarea>
                     </label>
+                </div>
+            </details>
+            <details class="azns-admin-appearance">
+                <summary>Display labels</summary>
+                <p class="description">Used by the Broadcast Mode and Upcoming Show shortcodes and blocks. Clear a label to restore its default.</p>
+                <div class="azns-admin-fields">
+                    <?php foreach (AZNS_Stations::DISPLAY_LABELS as $field => $default_label) : ?>
+                        <label><?php echo esc_html($default_label . ' label'); ?>
+                            <input type="text" name="<?php echo esc_attr($field . '[' . $index . ']'); ?>" value="<?php echo esc_attr($row[$field] ?? ''); ?>" placeholder="<?php echo esc_attr($default_label); ?>">
+                        </label>
+                    <?php endforeach; ?>
                 </div>
             </details>
             <div class="azns-admin-station-footer"><button type="button" class="button-link-delete azns-remove" hidden>Remove station</button></div>

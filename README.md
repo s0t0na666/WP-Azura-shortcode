@@ -4,11 +4,11 @@ WordPress plugin for embedding AzuraCast public pages and displaying radio compo
 
 ## Development status
 
-Latest published release: [1.5.0](https://github.com/s0t0na666/WP-Azura-shortcode/releases/tag/v1.5.0).
+Latest published release: [1.6.1](https://github.com/s0t0na666/WP-Azura-shortcode/releases/tag/v1.6.1).
 
 The plugin uses AzuraCast public-page embeds for the full Player, History shortcode, Podcasts, and Schedule interfaces. The Gutenberg History block is a native WordPress list sourced from AzuraCast's `song_history` data and applies its own display limit. A compact Upcoming Show component reads AzuraCast's public Schedule endpoint and displays the next returned schedule entry. Standalone Now Playing/Playing Next components consume AzuraCast's own Now Playing data instead of creating or estimating metadata in WordPress.
 
-**Playing Next data flow:** the initial state is read from `/api/nowplaying/{station_shortcode}` through the plugin's public WordPress REST proxy. Real-time updates arrive over AzuraCast's `/api/live/nowplaying/websocket` connection, in the `pub.data.np.playing_next` field. If the WebSocket drops, the plugin refreshes the JSON snapshot while reconnecting. A `playing_next: null` response means AzuraCast currently has no next item to show; it is not treated as an API parsing error. A late REST response cannot overwrite a newer WebSocket publication.
+**Playing Next data flow:** the browser reads the initial state directly from the configured AzuraCast server’s public `/api/nowplaying/{station_shortcode}` endpoint. The Upcoming Show widget likewise reads the public Schedule endpoint. If a direct request fails, the plugin tries its WordPress REST proxy. Real-time updates arrive over AzuraCast's `/api/live/nowplaying/websocket` connection, in the `pub.data.np.playing_next` field. If the WebSocket drops, the plugin refreshes the JSON snapshot while reconnecting. A `playing_next: null` response means AzuraCast currently has no next item to show; it is not treated as an API parsing error. A late REST response cannot overwrite a newer WebSocket publication.
 
 AzuraCast 0.24.0 does not provide a dedicated public Player/Next embed, although its Now Playing data contains the `playing_next` field. The standalone shortcode therefore uses that authoritative data feed; it does not guess the next song from history.
 
@@ -46,6 +46,8 @@ The **Logs & Diagnostics** screen can download a JSON report for support. It inc
 Diagnostics retain the active log and one archive, up to 1 MiB each. By default they are stored under the WordPress uploads directory in `azuracast-logs`. To log outside the web root, define `AZNS_LOG_DIR` in `wp-config.php` as an absolute directory writable by PHP. Changing the directory directs subsequent logging there. Existing files stay in their original directory.
 
 The administration form also reports skipped invalid shortcode rows, duplicate shortcodes, invalid server URLs and correction of an invalid default-station selection.
+
+Set station-specific labels under **AzuraCast → Stations → Display labels**. Blank entries use **AutoDJ**, **Live DJ**, and **Upcoming Show**. The corresponding shortcodes and Gutenberg blocks use the same labels.
 
 ## Additional station indicators
 
