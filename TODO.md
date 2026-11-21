@@ -66,6 +66,11 @@ Staging verification on WordPress 7.1.4 and PHP 8.1.34 confirmed the PR #4 candi
 - [ ] Prototype and test native Divi 5 and Beaver Builder modules with the same controls.
 - [ ] Prototype a separate opt-in mini-player. A player that survives full page navigation requires its own playback lifecycle and browser testing.
 
+## 1.5.0 follow-up
+
+- [ ] Diagnose the staging Upcoming Show failure (`Unable to load schedule`). On dev.mugadavanje.rs both station proxy endpoints, `/wp-json/azns/v1/station/mugadavanje/schedule` and `/wp-json/azns/v1/station/mugadavanje/nowplaying`, returned HTTP 502. Upcoming Show requests `schedule`; the console's `nowplaying` error is from a separate request. Compare the upstream AzuraCast responses with requests from the WordPress host, check the known hosting DNS issue, and verify Upcoming Show with both populated and empty schedules.
+- [ ] Add configurable Broadcast Mode text per station in the admin. Keep AutoDJ and Live DJ as defaults. Allow administrators to add, edit, and remove custom labels and assign a label to supported station modes. Use the selected labels in the shortcode and Gutenberg block, preserve defaults for existing stations, and keep unavailable data distinct from AutoDJ.
+
 ## Architecture and operational notes
 
 - AzuraCast remains the source of truth for playback, queue, history, podcasts and schedule data.
