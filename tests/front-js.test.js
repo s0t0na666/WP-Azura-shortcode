@@ -91,6 +91,7 @@ function createHarness(fetchImpl, type = 'next', art = false, extraWidgets = [],
             rest: definition.rest || '/wp-json/azns/v1/station/' + state.shortcode + '/',
             art: state.art,
             liveLabel: definition.liveLabel,
+            upcomingLabel: definition.upcomingLabel,
             autodjLabel: definition.autodjLabel,
         };
     });
@@ -454,7 +455,7 @@ test('renders the next scheduled show from AzuraCast schedule data, not the curr
     await flushPromises();
 
     assert.deepEqual(requests, ['https://radio.example.test/radio-proxy/api/station/test_station/schedule']);
-    assert.match(harness.target.textContent, /Next live show/);
+    assert.match(harness.target.textContent, /Upcoming Show/);
     assert.match(harness.target.textContent, /Next DJ/);
     assert.match(harness.target.textContent, /Upcoming live set/);
     assert.doesNotMatch(harness.target.textContent, /Current DJ/);
@@ -616,4 +617,13 @@ test('uses station-specific broadcast labels while keeping unavailable data sepa
     assert.match(custom.textContent, /In the studio — Test DJ/);
     publish({});
     assert.match(custom.textContent, /Broadcast mode unavailable/);
+});
+
+test('labels future playlists Upcoming Show and supports station-specific text', async () => {
+    const harness = createHarness(async () => response([{ type: 'playlist', title: 'Radio set', is_now: false }]), 'upcoming', false, [
+        { type: 'upcoming', shortcode: 'second', upcomingLabel: 'Next on air' },
+    ]);
+    await flushPromises();
+    assert.match(harness.target.textContent, /Upcoming Show/);
+    assert.match(harness.states[1].target.textContent, /Next on air/);
 });

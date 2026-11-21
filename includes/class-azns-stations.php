@@ -2,7 +2,7 @@
 if (!defined('ABSPATH')) { exit; }
 final class AZNS_Stations {
     const OPT = 'azns_settings';
-    const MODE_LABELS = ['autodj_label' => 'AutoDJ', 'live_label' => 'Live DJ'];
+    const DISPLAY_LABELS = ['autodj_label' => 'AutoDJ', 'live_label' => 'Live DJ', 'upcoming_label' => 'Upcoming Show'];
     public static function url($value) {
         if (!is_scalar($value)) return '';
         $value = trim((string) $value);
@@ -21,9 +21,9 @@ final class AZNS_Stations {
         if (!is_array($validated) || empty($validated['host'])) return '';
         return untrailingslashit($url);
     }
-    public static function mode_labels($row) {
+    public static function display_labels($row) {
         $labels = [];
-        foreach (array_keys(self::MODE_LABELS) as $field) {
+        foreach (array_keys(self::DISPLAY_LABELS) as $field) {
             $value = $row[$field] ?? '';
             $value = is_string($value) ? trim(sanitize_text_field($value)) : '';
             if ($value !== '') $labels[$field] = $value;
@@ -52,7 +52,7 @@ final class AZNS_Stations {
                 'name' => ($name === '' && $use_shortcode_as_name) ? $shortcode : $name,
                 'url' => $server, 'shortcode' => $shortcode, 'theme' => $theme,
                 'css' => $css, 'art' => !empty($row['art']),
-            ] + self::mode_labels($row);
+            ] + self::display_labels($row);
         }
         return $stations;
     }

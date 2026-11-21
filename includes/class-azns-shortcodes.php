@@ -92,8 +92,11 @@ final class AZNS_Shortcodes {
             'art' => $station['art'],
         ];
         if ($type === 'broadcast') {
-            $config['liveLabel'] = $station['live_label'] ?? AZNS_Stations::MODE_LABELS['live_label'];
-            $config['autodjLabel'] = $station['autodj_label'] ?? AZNS_Stations::MODE_LABELS['autodj_label'];
+            $config['liveLabel'] = $station['live_label'] ?? AZNS_Stations::DISPLAY_LABELS['live_label'];
+            $config['autodjLabel'] = $station['autodj_label'] ?? AZNS_Stations::DISPLAY_LABELS['autodj_label'];
+        }
+        if ($type === 'upcoming') {
+            $config['upcomingLabel'] = $station['upcoming_label'] ?? AZNS_Stations::DISPLAY_LABELS['upcoming_label'];
         }
         wp_add_inline_script('azns', 'window.AZNS=window.AZNS||{};window.AZNS[' . wp_json_encode($id) . ']=' . wp_json_encode($config, JSON_HEX_TAG) . ';', 'before');
 

@@ -1,6 +1,10 @@
 # Changelog
 
-## 1.6.0 — Release candidate
+## 1.6.1 — Upcoming Show labels
+
+- Display Upcoming Show for future entries by default, with an optional label per station.
+
+## 1.6.0 — Direct station data and broadcast labels
 
 - Load Upcoming Show schedules and Now Playing snapshots directly from the configured AzuraCast server when available, with WordPress REST as a fallback.
 - Customize Broadcast Mode labels per station while retaining AutoDJ and Live DJ defaults.

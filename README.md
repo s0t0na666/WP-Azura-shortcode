@@ -4,7 +4,7 @@ WordPress plugin for embedding AzuraCast public pages and displaying radio compo
 
 ## Development status
 
-Latest published release: [1.5.0](https://github.com/s0t0na666/WP-Azura-shortcode/releases/tag/v1.5.0).
+Latest published release: [1.6.1](https://github.com/s0t0na666/WP-Azura-shortcode/releases/tag/v1.6.1).
 
 The plugin uses AzuraCast public-page embeds for the full Player, History shortcode, Podcasts, and Schedule interfaces. The Gutenberg History block is a native WordPress list sourced from AzuraCast's `song_history` data and applies its own display limit. A compact Upcoming Show component reads AzuraCast's public Schedule endpoint and displays the next returned schedule entry. Standalone Now Playing/Playing Next components consume AzuraCast's own Now Playing data instead of creating or estimating metadata in WordPress.
 
@@ -47,7 +47,7 @@ Diagnostics retain the active log and one archive, up to 1 MiB each. By default 
 
 The administration form also reports skipped invalid shortcode rows, duplicate shortcodes, invalid server URLs and correction of an invalid default-station selection.
 
-Set station-specific labels under **AzuraCast → Stations → Broadcast Mode labels**. Blank entries use **AutoDJ** and **Live DJ**. The Broadcast Mode shortcode and Gutenberg block use the same labels.
+Set station-specific labels under **AzuraCast → Stations → Display labels**. Blank entries use **AutoDJ**, **Live DJ**, and **Upcoming Show**. The corresponding shortcodes and Gutenberg blocks use the same labels.
 
 ## Additional station indicators
 

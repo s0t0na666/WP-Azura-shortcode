@@ -145,7 +145,7 @@
         });
     }
 
-    function renderUpcomingShow(widget, entries) {
+    function renderUpcomingShow(widget, entries, upcomingLabel) {
         const target = widget.querySelector('.azns-upcoming');
         if (!target) return;
         target.replaceChildren();
@@ -168,7 +168,7 @@
         const card = make('article', 'azns-item azns-upcoming-card');
         const label = selected.is_now === true
             ? 'On air now'
-            : (selected.type === 'streamer' ? 'Next live show' : (selected.type === 'playlist' ? 'Next playlist' : 'Up next'));
+            : (upcomingLabel || 'Upcoming Show');
         card.append(make('small', 'azns-upcoming-label azns-live', label));
         card.append(make('strong', 'azns-upcoming-title', selected.title || selected.name || 'Untitled schedule entry'));
         if (selected.description) card.append(make('p', '', selected.description));
@@ -515,7 +515,7 @@
         if (type === 'upcoming') {
             const unsubscribe = subscribeUpcoming(config, data => {
                 setStatus(data ? '' : 'Unable to load schedule');
-                if (data) renderUpcomingShow(widget, data);
+                if (data) renderUpcomingShow(widget, data, config.upcomingLabel);
             });
             widget._aznsClose = () => {
                 unsubscribe();

@@ -35,7 +35,7 @@ final class AZNS_Admin {
         $shortcodes = (isset($posted['shortcode']) && is_array($posted['shortcode'])) ? $posted['shortcode'] : [];
         $fields = ['name', 'url', 'theme', 'css', 'art'];
         $labels = [];
-        foreach (array_keys(AZNS_Stations::MODE_LABELS) as $field) {
+        foreach (array_keys(AZNS_Stations::DISPLAY_LABELS) as $field) {
             $labels[$field] = isset($posted[$field]) && is_array($posted[$field]) ? $posted[$field] : [];
         }
         $submitted = [];
@@ -84,7 +84,7 @@ final class AZNS_Admin {
             }
 
             $seen[$shortcode] = true;
-            $rows[] = $row + AZNS_Stations::mode_labels(array_map(
+            $rows[] = $row + AZNS_Stations::display_labels(array_map(
                 static fn ($values) => $values[$index] ?? '',
                 $labels
             ));
@@ -204,10 +204,10 @@ final class AZNS_Admin {
                 </div>
             </details>
             <details class="azns-admin-appearance">
-                <summary>Broadcast Mode labels</summary>
-                <p class="description">Used by the Broadcast Mode shortcode and block. Clear a label to restore its default.</p>
+                <summary>Display labels</summary>
+                <p class="description">Used by the Broadcast Mode and Upcoming Show shortcodes and blocks. Clear a label to restore its default.</p>
                 <div class="azns-admin-fields">
-                    <?php foreach (AZNS_Stations::MODE_LABELS as $field => $default_label) : ?>
+                    <?php foreach (AZNS_Stations::DISPLAY_LABELS as $field => $default_label) : ?>
                         <label><?php echo esc_html($default_label . ' label'); ?>
                             <input type="text" name="<?php echo esc_attr($field . '[' . $index . ']'); ?>" value="<?php echo esc_attr($row[$field] ?? ''); ?>" placeholder="<?php echo esc_attr($default_label); ?>">
                         </label>

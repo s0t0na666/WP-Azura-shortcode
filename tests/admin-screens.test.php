@@ -119,13 +119,16 @@ ensure($settings['stations'] == $previous['stations'], 'Invalid rows altered val
 
 $_POST['autodj_label'] = [0 => ' <b>Studio Mix</b> ', 1 => ['invalid']];
 $_POST['live_label'] = [1 => 'Live from Belgrade'];
+$_POST['upcoming_label'] = [0 => ' <b>Coming up</b> '];
 try { $admin->save(); } catch (Redirect) {}
 ensure(($stations->get('first')['autodj_label'] ?? '') === 'Studio Mix', 'Custom AutoDJ label did not round trip or was not sanitized.');
 ensure(!isset($stations->get('second')['autodj_label']), 'A malformed AutoDJ label was accepted.');
 ensure(($stations->get('second')['live_label'] ?? '') === 'Live from Belgrade', 'Custom live label was not saved for its own station.');
+ensure(($stations->get('first')['upcoming_label'] ?? '') === 'Coming up', 'Custom upcoming label was not saved for its station.');
 $_POST['autodj_label'][0] = '';
+$_POST['upcoming_label'][0] = '';
 try { $admin->save(); } catch (Redirect) {}
-ensure(!isset($stations->get('first')['autodj_label']), 'Clearing a custom label must restore the default.');
+ensure(!isset($stations->get('first')['autodj_label']) && !isset($stations->get('first')['upcoming_label']), 'Clearing custom labels must restore the defaults.');
 
 $_POST = ['_wpnonce' => 'azns_clear'];
 try { $admin->clear(); } catch (Redirect) {}

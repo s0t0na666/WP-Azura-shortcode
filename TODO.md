@@ -71,6 +71,8 @@ Staging verification on WordPress 7.1.4 and PHP 8.1.34 confirmed the PR #4 candi
 - [ ] Diagnose the staging Upcoming Show failure (`Unable to load schedule`). On dev.mugadavanje.rs both station proxy endpoints, `/wp-json/azns/v1/station/mugadavanje/schedule` and `/wp-json/azns/v1/station/mugadavanje/nowplaying`, returned HTTP 502. Upcoming Show requests `schedule`; the console's `nowplaying` error is from a separate request. Compare the upstream AzuraCast responses with requests from the WordPress host, check the known hosting DNS issue, and verify Upcoming Show with both populated and empty schedules.
 - [x] Add configurable Broadcast Mode text per station in the admin. Keep AutoDJ and Live DJ as defaults. Allow administrators to enter or clear a custom label for each supported station mode. Use the selected labels in the shortcode and Gutenberg block, preserve defaults for existing stations, and keep unavailable data distinct from AutoDJ.
 
+- [x] Use Upcoming Show for future entries by default and allow a per-station override.
+
 ## Architecture and operational notes
 
 - AzuraCast remains the source of truth for playback, queue, history, podcasts and schedule data.
