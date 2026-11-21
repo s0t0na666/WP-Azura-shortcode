@@ -90,6 +90,9 @@ function createHarness(fetchImpl, type = 'next', art = false, extraWidgets = [],
             shortcode: state.shortcode,
             rest: definition.rest || '/wp-json/azns/v1/station/' + state.shortcode + '/',
             art: state.art,
+            liveLabel: definition.liveLabel,
+            upcomingLabel: definition.upcomingLabel,
+            autodjLabel: definition.autodjLabel,
         };
     });
     const windowListeners = {};
@@ -451,8 +454,8 @@ test('renders the next scheduled show from AzuraCast schedule data, not the curr
     }, 'upcoming');
     await flushPromises();
 
-    assert.deepEqual(requests, ['/wp-json/azns/v1/station/test_station/schedule']);
-    assert.match(harness.target.textContent, /Next live show/);
+    assert.deepEqual(requests, ['https://radio.example.test/radio-proxy/api/station/test_station/schedule']);
+    assert.match(harness.target.textContent, /Upcoming Show/);
     assert.match(harness.target.textContent, /Next DJ/);
     assert.match(harness.target.textContent, /Upcoming live set/);
     assert.doesNotMatch(harness.target.textContent, /Current DJ/);
@@ -557,4 +560,70 @@ test('shares schedule refreshes and stops scheduling after the final widget clos
 
     harness.windowListeners.pagehide();
     assert.equal(harness.timers[1].cleared, true);
+});
+
+test('loads Now Playing snapshots directly without sending credentials or calling WordPress', async () => {
+    const requests = [];
+    const harness = createHarness(async (url, options) => {
+        requests.push([url, options.credentials]);
+        return response(nextData('Direct track'));
+    });
+    await flushPromises();
+    assert.deepEqual(requests, [['https://radio.example.test/radio-proxy/api/nowplaying/test_station', 'omit']]);
+    assert.match(harness.target.textContent, /Direct track/);
+});
+
+test('falls back to WordPress if the direct schedule request is blocked', async () => {
+    const requests = [];
+    const harness = createHarness(async (url, options) => {
+        requests.push([url, options.credentials]);
+        if (options.credentials === 'omit') throw new TypeError('CORS blocked the request');
+        return response([{ title: 'Proxy show', is_now: false }]);
+    }, 'upcoming');
+    await flushPromises();
+    assert.deepEqual(requests, [
+        ['https://radio.example.test/radio-proxy/api/station/test_station/schedule', 'omit'],
+        ['/wp-json/azns/v1/station/test_station/schedule', 'same-origin'],
+    ]);
+    assert.match(harness.target.textContent, /Proxy show/);
+});
+
+test('falls back to WordPress if the direct Now Playing payload is invalid', async () => {
+    const requests = [];
+    const harness = createHarness(async url => {
+        requests.push(url);
+        return response(requests.length === 1 ? {} : nextData('Proxy track'));
+    });
+    await flushPromises();
+    assert.deepEqual(requests, [
+        'https://radio.example.test/radio-proxy/api/nowplaying/test_station',
+        '/wp-json/azns/v1/station/test_station/nowplaying',
+    ]);
+    assert.match(harness.target.textContent, /Proxy track/);
+});
+
+test('uses station-specific broadcast labels while keeping unavailable data separate', async () => {
+    const harness = createHarness(async () => response({ live: { is_live: false } }), 'broadcast', false, [
+        { type: 'broadcast', shortcode: 'custom', autodjLabel: 'Studio Mix', liveLabel: 'In the studio' },
+    ]);
+    await flushPromises();
+    const custom = harness.states[1].target;
+    assert.match(harness.target.textContent, /AutoDJ/);
+    assert.match(custom.textContent, /Studio Mix/);
+    const publish = live => harness.sockets[1].onmessage({
+        data: JSON.stringify({ pub: { data: { np: { live } } } }),
+    });
+    publish({ is_live: true, streamer_name: 'Test DJ' });
+    assert.match(custom.textContent, /In the studio — Test DJ/);
+    publish({});
+    assert.match(custom.textContent, /Broadcast mode unavailable/);
+});
+
+test('labels future playlists Upcoming Show and supports station-specific text', async () => {
+    const harness = createHarness(async () => response([{ type: 'playlist', title: 'Radio set', is_now: false }]), 'upcoming', false, [
+        { type: 'upcoming', shortcode: 'second', upcomingLabel: 'Next on air' },
+    ]);
+    await flushPromises();
+    assert.match(harness.target.textContent, /Upcoming Show/);
+    assert.match(harness.states[1].target.textContent, /Next on air/);
 });

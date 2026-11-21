@@ -67,6 +67,7 @@ final class AZNS_Test_Shortcode_Stations {
         'theme' => 'dark',
         'css' => '',
         'art' => true,
+        'live_label' => 'In the studio',
     ];
 
     public function get($identifier = '') {
@@ -75,6 +76,7 @@ final class AZNS_Test_Shortcode_Stations {
     }
 }
 
+require_once __DIR__ . '/../includes/class-azns-stations.php';
 require_once __DIR__ . '/../includes/class-azns-shortcodes.php';
 
 function azns_shortcode_assert($condition, $message) {
@@ -90,6 +92,15 @@ azns_shortcode_assert(
         && isset($GLOBALS['azns_shortcode_test_registered']['azura_upcoming_show']),
     'The existing and new public shortcode tags must be registered.'
 );
+
+$shortcodes->render([], '', 'azura_broadcast_mode');
+$inline = end($GLOBALS['azns_shortcode_test_inline']);
+azns_shortcode_assert(
+    str_contains($inline[1], '"liveLabel":"In the studio"')
+        && str_contains($inline[1], '"autodjLabel":"AutoDJ"'),
+    'Broadcast Mode must use custom labels with defaults for unset modes.'
+);
+$GLOBALS['azns_shortcode_test_enqueued'] = [];
 
 $current = $shortcodes->render([], '', 'azura_nowplaying');
 azns_shortcode_assert(strpos($current, 'data-type="nowplaying"') !== false, 'Now Playing must render the expected widget type.');
