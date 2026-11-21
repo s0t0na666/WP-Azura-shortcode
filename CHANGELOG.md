@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Load Upcoming Show schedules and Now Playing snapshots directly from the configured AzuraCast server when available, with WordPress REST as a fallback.
+
 ## 1.5.0 — Admin redesign
 
 - Replaced the stations table with responsive station cards.

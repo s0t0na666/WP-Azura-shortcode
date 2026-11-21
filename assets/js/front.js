@@ -211,6 +211,31 @@
                 .some(field => Object.hasOwn(data, field));
     }
 
+    async function fetchStationData(config, resource, isValid) {
+        async function read(url, options) {
+            const response = await fetch(url, options);
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            const data = await response.json();
+            if (!isValid(data)) throw new Error('Invalid ' + resource + ' data');
+            return data;
+        }
+
+        try {
+            const server = new URL(config.server);
+            const basePath = server.pathname.replace(/\/+$/, '');
+            const station = encodeURIComponent(config.shortcode);
+            const path = resource === 'schedule'
+                ? '/api/station/' + station + '/schedule'
+                : '/api/nowplaying/' + station;
+            return await read(server.origin + basePath + path, {
+                credentials: 'omit',
+                signal: typeof AbortSignal === 'undefined' ? undefined : AbortSignal.timeout?.(5000),
+            });
+        } catch {
+            return read(config.rest + resource, { credentials: 'same-origin' });
+        }
+    }
+
     function stationFeedKey(config) {
         try {
             const server = new URL(config.server);
@@ -248,11 +273,8 @@
             const revisionAtRequest = realtimeRevision;
             const requestId = ++snapshotSequence;
             try {
-                const response = await fetch(config.rest + 'nowplaying', { credentials: 'same-origin' });
-                if (!response.ok) throw new Error('HTTP ' + response.status);
-                const data = await response.json();
+                const data = await fetchStationData(config, 'nowplaying', isNowPlaying);
                 if (!active || requestId !== snapshotSequence) return;
-                if (!isNowPlaying(data)) throw new Error('Invalid Now Playing data');
                 // A WebSocket publication is newer than any snapshot request already in flight.
                 if (realtimeRevision === revisionAtRequest) publish(data);
             } catch (error) {
@@ -386,10 +408,7 @@
             upcomingFeeds.set(key, feed);
             const refresh = async () => {
                 try {
-                    const response = await fetch(config.rest + 'schedule', { credentials: 'same-origin' });
-                    if (!response.ok) throw new Error('HTTP ' + response.status);
-                    const data = await response.json();
-                    if (!Array.isArray(data)) throw new Error('Invalid schedule data');
+                    const data = await fetchStationData(config, 'schedule', Array.isArray);
                     feed.data = data;
                     feed.subscribers.forEach(render => render(data));
                 } catch (error) {
