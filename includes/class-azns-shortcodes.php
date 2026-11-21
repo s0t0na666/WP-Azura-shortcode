@@ -91,7 +91,11 @@ final class AZNS_Shortcodes {
             'rest' => rest_url('azns/v1/station/' . rawurlencode($station['shortcode']) . '/'),
             'art' => $station['art'],
         ];
-        wp_add_inline_script('azns', 'window.AZNS=window.AZNS||{};window.AZNS[' . wp_json_encode($id) . ']=' . wp_json_encode($config) . ';', 'before');
+        if ($type === 'broadcast') {
+            $config['liveLabel'] = $station['live_label'] ?? AZNS_Stations::MODE_LABELS['live_label'];
+            $config['autodjLabel'] = $station['autodj_label'] ?? AZNS_Stations::MODE_LABELS['autodj_label'];
+        }
+        wp_add_inline_script('azns', 'window.AZNS=window.AZNS||{};window.AZNS[' . wp_json_encode($id) . ']=' . wp_json_encode($config, JSON_HEX_TAG) . ';', 'before');
 
         $html = '<section id="' . esc_attr($id) . '" class="azns azns-' . esc_attr($type) . ' azns-' . esc_attr($station['theme']) . '" data-type="' . esc_attr($type) . '" data-limit="' . max(1, min(50, absint($attributes['limit']))) . '">';
         if ($type === 'history') {

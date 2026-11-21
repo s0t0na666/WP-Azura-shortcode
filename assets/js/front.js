@@ -479,9 +479,9 @@
                     const streamer = (typeof data.live.streamer_name === 'string' && data.live.streamer_name.trim())
                         ? ' — ' + data.live.streamer_name.trim()
                         : '';
-                    target.append(make('strong', 'azns-indicator-value', 'Live DJ' + streamer));
+                    target.append(make('strong', 'azns-indicator-value', (config.liveLabel || 'Live DJ') + streamer));
                 } else {
-                    target.append(make('strong', 'azns-indicator-value', 'AutoDJ'));
+                    target.append(make('strong', 'azns-indicator-value', config.autodjLabel || 'AutoDJ'));
                 }
             } else {
                 const target = widget.querySelector('.azns-current');

@@ -90,6 +90,8 @@ function createHarness(fetchImpl, type = 'next', art = false, extraWidgets = [],
             shortcode: state.shortcode,
             rest: definition.rest || '/wp-json/azns/v1/station/' + state.shortcode + '/',
             art: state.art,
+            liveLabel: definition.liveLabel,
+            autodjLabel: definition.autodjLabel,
         };
     });
     const windowListeners = {};
@@ -597,4 +599,21 @@ test('falls back to WordPress if the direct Now Playing payload is invalid', asy
         '/wp-json/azns/v1/station/test_station/nowplaying',
     ]);
     assert.match(harness.target.textContent, /Proxy track/);
+});
+
+test('uses station-specific broadcast labels while keeping unavailable data separate', async () => {
+    const harness = createHarness(async () => response({ live: { is_live: false } }), 'broadcast', false, [
+        { type: 'broadcast', shortcode: 'custom', autodjLabel: 'Studio Mix', liveLabel: 'In the studio' },
+    ]);
+    await flushPromises();
+    const custom = harness.states[1].target;
+    assert.match(harness.target.textContent, /AutoDJ/);
+    assert.match(custom.textContent, /Studio Mix/);
+    const publish = live => harness.sockets[1].onmessage({
+        data: JSON.stringify({ pub: { data: { np: { live } } } }),
+    });
+    publish({ is_live: true, streamer_name: 'Test DJ' });
+    assert.match(custom.textContent, /In the studio — Test DJ/);
+    publish({});
+    assert.match(custom.textContent, /Broadcast mode unavailable/);
 });

@@ -47,6 +47,8 @@ Diagnostics retain the active log and one archive, up to 1 MiB each. By default 
 
 The administration form also reports skipped invalid shortcode rows, duplicate shortcodes, invalid server URLs and correction of an invalid default-station selection.
 
+Set station-specific labels under **AzuraCast → Stations → Broadcast Mode labels**. Blank entries use **AutoDJ** and **Live DJ**. The Broadcast Mode shortcode and Gutenberg block use the same labels.
+
 ## Additional station indicators
 
 Two lightweight components use the fields already included in AzuraCast's Now Playing JSON/WebSocket payload:

@@ -117,6 +117,16 @@ try { $admin->save(); } catch (Redirect) {}
 ensure(str_contains($redirect, 'duplicate=1') && str_contains($redirect, 'invalid_url=1'), 'Duplicate and invalid URL feedback were lost.');
 ensure($settings['stations'] == $previous['stations'], 'Invalid rows altered valid station settings.');
 
+$_POST['autodj_label'] = [0 => ' <b>Studio Mix</b> ', 1 => ['invalid']];
+$_POST['live_label'] = [1 => 'Live from Belgrade'];
+try { $admin->save(); } catch (Redirect) {}
+ensure(($stations->get('first')['autodj_label'] ?? '') === 'Studio Mix', 'Custom AutoDJ label did not round trip or was not sanitized.');
+ensure(!isset($stations->get('second')['autodj_label']), 'A malformed AutoDJ label was accepted.');
+ensure(($stations->get('second')['live_label'] ?? '') === 'Live from Belgrade', 'Custom live label was not saved for its own station.');
+$_POST['autodj_label'][0] = '';
+try { $admin->save(); } catch (Redirect) {}
+ensure(!isset($stations->get('first')['autodj_label']), 'Clearing a custom label must restore the default.');
+
 $_POST = ['_wpnonce' => 'azns_clear'];
 try { $admin->clear(); } catch (Redirect) {}
 ensure($clear_count === 0, 'Logs were cleared without confirmation.');

@@ -1,8 +1,9 @@
 # Changelog
 
-## Unreleased
+## 1.6.0 — Release candidate
 
 - Load Upcoming Show schedules and Now Playing snapshots directly from the configured AzuraCast server when available, with WordPress REST as a fallback.
+- Customize Broadcast Mode labels per station while retaining AutoDJ and Live DJ defaults.
 
 ## 1.5.0 — Admin redesign
 
